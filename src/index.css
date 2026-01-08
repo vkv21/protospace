@@ -1,5 +1,22 @@
 @import 'tailwindcss';
 
+@variant dark (&:is(.dark *));
+
+@theme {
+  --color-*: initial;
+  --color-gray-50: oklch(98.3% 0.006 247.9);
+  --color-gray-100: oklch(96.1% 0.011 248);
+  --color-gray-200: oklch(92.8% 0.016 247.9);
+  --color-gray-300: oklch(87.4% 0.02 248);
+  --color-gray-400: oklch(73.8% 0.027 248.1);
+  --color-gray-500: oklch(60.5% 0.029 248);
+  --color-gray-600: oklch(49.8% 0.027 248);
+  --color-gray-700: oklch(41.8% 0.024 247.9);
+  --color-gray-800: oklch(32.7% 0.02 248.1);
+  --color-gray-900: oklch(24.6% 0.017 247.9);
+  --color-gray-950: oklch(15.1% 0.012 248.2);
+}
+
 :root {
   font-family: system-ui, sans-serif;
 }
