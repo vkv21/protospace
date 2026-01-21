@@ -16,3 +16,16 @@ dist-ssr
 .vscode/*
 .DS_Store
 
+# Docker & Deployment
+docker.env
+ssl/
+certs/
+logs/
+*.tar.gz
+deployment.log
+
+# Backup files
+backups/
+
+# Planning documents (local only)
+IMMEDIATE-PLAN.md

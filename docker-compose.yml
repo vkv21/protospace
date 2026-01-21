@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  commitspace-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-https://commitspace.com/api}
+    container_name: commitspace-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Persist SSL certificates
+      - ./ssl:/etc/letsencrypt
+      # Access logs for debugging
+      - ./logs:/var/log/nginx
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+      - EMAIL=${EMAIL:-admin@example.com}
+    env_file:
+      - docker.env
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+# Future: Add backend and database services
+# services:
+#   backend:
+#     ...
+#   database:
+#     ...

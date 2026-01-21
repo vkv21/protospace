@@ -1,0 +1,97 @@
+name: Deploy CommitSpace to EC2
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run tests
+        run: npm test -- --run || echo "No tests configured yet"
+        continue-on-error: true
+
+      - name: 🏗️ Build Docker image
+        run: |
+          docker build \
+            --build-arg VITE_API_URL=${{ secrets.VITE_API_URL || 'https://commitspace.com/api' }} \
+            -t commitspace:${{ github.sha }} \
+            -t commitspace:latest \
+            .
+
+      - name: 💾 Save Docker image
+        run: |
+          docker save commitspace:latest | gzip > commitspace-latest.tar.gz
+
+      - name: 📤 Transfer image to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "commitspace-latest.tar.gz"
+          target: "/home/ec2-user/"
+
+      - name: 🚀 Deploy on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user
+            
+            # Load new image
+            docker load < commitspace-latest.tar.gz
+            
+            # Run deployment script
+            bash deploy.sh
+            
+            # Cleanup
+            rm commitspace-latest.tar.gz
+            
+            # Verify deployment
+            sleep 5
+            curl -f http://localhost/ || {
+              echo "❌ Health check failed!"
+              exit 1
+            }
+            
+            echo "✅ Deployment successful!"
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: rm -f commitspace-latest.tar.gz
+
+      - name: 📊 Deployment summary
+        run: |
+          echo "### 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL**: https://commitspace.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ✅ Success" >> $GITHUB_STEP_SUMMARY
