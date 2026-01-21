@@ -26,3 +26,6 @@ deployment.log
 
 # Backup files
 backups/
+
+# Planning documents (local only)
+IMMEDIATE-PLAN.md
