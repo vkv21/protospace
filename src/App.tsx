@@ -52,7 +52,7 @@ function App() {
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
-                  AI Desk Watch
+                  CommitSpace
                 </h1>
               </div>
             </div>
