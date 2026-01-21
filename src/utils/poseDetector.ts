@@ -18,6 +18,7 @@ class PoseDetectorSingleton {
 
   private constructor() {}
 
+  // Singleton instance accessor
   public static getInstance(): PoseDetectorSingleton {
     if (!PoseDetectorSingleton.instance) {
       PoseDetectorSingleton.instance = new PoseDetectorSingleton();
@@ -25,6 +26,7 @@ class PoseDetectorSingleton {
     return PoseDetectorSingleton.instance;
   }
 
+  // Initialize the PoseLandmarker if not already done
   public async initialize(): Promise<void> {
     if (this.poseLandmarker) {
       return; // Already initialized
@@ -39,11 +41,15 @@ class PoseDetectorSingleton {
 
     try {
       await this.initializationPromise;
+      // after initialization, the promise returns void and the landmarker is set in doInitialize
     } finally {
       this.isInitializing = false;
+      // initializationPromise when resolved, will have set the landmarker
+      this.initializationPromise = null;
     }
   }
 
+  // Actual initialization logic
   private async doInitialize(): Promise<void> {
     try {
       const vision = await FilesetResolver.forVisionTasks(

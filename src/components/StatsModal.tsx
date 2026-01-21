@@ -107,12 +107,17 @@ export const StatsModal = ({
     { deskTime: 0, breakTime: 0, sessions: 0, daysActive: 0 }
   );
 
+  // Get last 7 days for week tab
+  const last7Days = Object.entries(recentDays)
+    .slice(-7)
+    .map(([, stats]) => stats);
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-400/80 backdrop-blur-lg"
       onClick={handleBackdropClick}
     >
-      <div className="relative w-full max-w-4xl max-h-[90vh] m-4 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="relative w-full max-w-4xl max-h-[90vh] m-4 bg-gray-100 dark:bg-gray-900 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-800">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
@@ -314,6 +319,36 @@ export const StatsModal = ({
                   recentDays={recentDays}
                   goalHours={stats.settings.dailyGoalHours}
                 />
+              </div>
+
+              <div className="space-y-2">
+                {last7Days.map((dayStats) => (
+                  <div
+                    key={dayStats.date}
+                    className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 flex items-center justify-between"
+                  >
+                    <div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {new Date(dayStats.date).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {dayStats.sessions.length} sessions
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                        {formatDeskTime(Math.floor(dayStats.totalDeskTime))}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        desk time
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}

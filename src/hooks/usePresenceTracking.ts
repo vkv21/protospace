@@ -1,13 +1,17 @@
 import { useEffect, useState, useRef } from 'react';
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
 import { analyzePoseLandmarks } from '../utils/presenceAnalyzer';
+import { detectActivity } from '../utils/activityAnalyzer';
 import type { PresenceResult } from '../utils/presenceAnalyzer';
+import type { ActivityType } from '../types/stats';
 
 export interface PresenceState {
-  isPresent: boolean;
-  confidence: number;
+  isPresent: boolean; // Whether user is currently at their desk
+  confidence: number; // Confidence score of the presence detection
   lastSeen: Date | null;
   deskTime: number; // Total seconds at desk today
+  currentActivity: ActivityType | null; // Current detected activity
+  activityConfidence: number; // Confidence in activity detection
 }
 
 export interface UsePresenceTrackingOptions {
@@ -73,6 +77,8 @@ export const usePresenceTracking = (
   const [lastSeen, setLastSeen] = useState<Date | null>(null);
   const [isPresent, setIsPresent] = useState(false);
   const [confidence, setConfidence] = useState(0);
+  const [currentActivity, setCurrentActivity] = useState<ActivityType | null>(null);
+  const [activityConfidence, setActivityConfidence] = useState(0);
 
   const consecutivePresenceRef = useRef(0);
   const consecutiveAbsenceRef = useRef(0);
@@ -90,12 +96,21 @@ export const usePresenceTracking = (
         queueMicrotask(() => {
           setIsPresent(false);
           setConfidence(0);
+          setCurrentActivity('away');
+          setActivityConfidence(1.0);
         });
       }
       return;
     }
 
     const result: PresenceResult = analyzePoseLandmarks(landmarks);
+
+    // Detect activity when present
+    let activityResult = null;
+    if (result.isPresent) {
+      activityResult = detectActivity(landmarks);
+      console.log('🎯 Activity detected:', activityResult);
+    }
 
     if (result.isPresent) {
       consecutivePresenceRef.current += 1;
@@ -108,10 +123,14 @@ export const usePresenceTracking = (
         lastValidPresenceTimeRef.current = Date.now();
       }
 
-      // Update last seen and confidence
+      // Update last seen, confidence, and activity
       queueMicrotask(() => {
         setLastSeen(new Date());
         setConfidence(result.confidence);
+        if (activityResult) {
+          setCurrentActivity(activityResult.activity);
+          setActivityConfidence(activityResult.confidence);
+        }
       });
 
       // Change to present after hysteresisFrames consecutive detections
@@ -132,6 +151,8 @@ export const usePresenceTracking = (
       if (consecutiveAbsenceRef.current >= hysteresisFrames) {
         queueMicrotask(() => {
           setIsPresent(false);
+          setCurrentActivity('away');
+          setActivityConfidence(1.0);
         });
       }
     }
@@ -224,5 +245,7 @@ export const usePresenceTracking = (
     confidence,
     lastSeen,
     deskTime,
+    currentActivity,
+    activityConfidence,
   };
 };

@@ -140,13 +140,11 @@ These features are out of scope for V1 but architecture should accommodate futur
 - **Total: ~40KB** (0.8% of 5MB localStorage quota)
 - Safe for 10+ years of continuous tracking
 
-### Migration Strategy
+### Storage Strategy
 
-- Auto-detect old format: `aideskwatch_presence` + `aideskwatch_last_date`
-- Convert to new format: `aideskwatch_stats_v2`
-- Keep old keys for 7 days as backup
-- Show migration success notification
-- Version number allows future schema changes
+- Simple format: `aideskwatch_stats`
+- All data in single localStorage key
+- Clean initialization for new users
 
 ---
 

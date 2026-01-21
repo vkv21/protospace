@@ -19,17 +19,39 @@ export const usePoseDetection = (
 ): UsePoseDetectionReturn => {
   const { enabled, intervalMs = 1000 } = options;
 
+  // State variables
   const [landmarks, setLandmarks] = useState<NormalizedLandmark[] | null>(null);
+  // Current detected body pose (33 points) or null if no person
+
   const [isLoading, setIsLoading] = useState(true);
+  // True during MediaPipe model download/initialization
+
   const [error, setError] = useState<string | null>(null);
+  // Error message if something goes wrong
 
+  // Refs for managing detection loop
   const animationFrameRef = useRef<number | null>(null);
-  const lastDetectionTimeRef = useRef<number>(0);
-  const detectorRef = useRef(getPoseDetector());
-  const runDetectionRef = useRef<((timestamp: number) => void) | null>(null);
+  // Stores requestAnimationFrame ID for cleanup
 
+  const lastDetectionTimeRef = useRef<number>(0);
+  // Timestamp of last successful detection (for throttling)
+
+  const detectorRef = useRef(getPoseDetector());
+  // Singleton instance of PoseDetectorSingleton (persists across renders)
+
+  const runDetectionRef = useRef<((timestamp: number) => void) | null>(null);
+  // Stores latest version of runDetection callback
+
+  // Detection loop callback
+  /**
+   * Runs pose detection on the video element at specified intervals.
+   *
+   * @param timestamp Current timestamp from requestAnimationFrame
+   * @returns void
+   */
   const runDetection = useCallback(
     (timestamp: number) => {
+      // Stop loop if tracking disabled or video element missing
       if (!enabled || !videoRef.current) {
         setLandmarks(null);
         return;

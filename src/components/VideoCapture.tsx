@@ -1,14 +1,19 @@
 import { useRef, useState, useEffect } from 'react';
+// import custom hooks
 import { useWebcam } from '../hooks/useWebcam';
 import { usePoseDetection } from '../hooks/usePoseDetection';
 import { usePresenceTracking } from '../hooks/usePresenceTracking';
 import { useCanvasOverlay } from '../hooks/useCanvasOverlay';
 import { useStatsTracking } from '../hooks/useStatsTracking';
 import { useNotifications } from '../hooks/useNotifications';
+import { useSessionTimer } from '../hooks/useSessionTimer';
+
 import { formatDeskTime } from '../utils/presenceAnalyzer';
 import { DailyStats } from './DailyStats';
 import { StatsModal } from './StatsModal';
 import { SettingsModal } from './SettingsModal';
+import { SessionTimer } from './SessionTimer';
+import { ConfirmDialog } from './ConfirmDialog';
 
 export const VideoCapture = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -28,6 +33,7 @@ export const VideoCapture = () => {
   // Modal state
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [showStopConfirm, setShowStopConfirm] = useState(false);
 
   // Persist dev mode to localStorage
   useEffect(() => {
@@ -53,7 +59,7 @@ export const VideoCapture = () => {
   });
 
   // Presence tracking based on pose landmarks
-  const { isPresent, confidence, lastSeen, deskTime } =
+  const { isPresent, confidence, lastSeen, deskTime, currentActivity, activityConfidence } =
     usePresenceTracking(landmarks);
 
   // Stats tracking with sessions
@@ -66,16 +72,35 @@ export const VideoCapture = () => {
     goalHours,
     fullStats,
     updateSettings,
+    startSession,
+    stopSession,
+    pauseSession,
+    resumeSession,
   } = useStatsTracking({
     isPresent,
     lastSeen,
+    currentActivity,
+    activityConfidence,
   });
+
+  // Debug logging for activity
+  useEffect(() => {
+    console.log('📊 VideoCapture - Activity State:', {
+      isTracking,
+      currentActivity,
+      activityConfidence,
+      isPresent,
+    });
+  }, [isTracking, currentActivity, activityConfidence, isPresent]);
 
   // Notification system for break reminders
   const { notificationPermission, requestPermission } = useNotifications({
     continuousDeskTime,
     enabled: isCapturing && isPresent,
   });
+
+  // Calculate elapsed session time for active session
+  const elapsedSeconds = useSessionTimer(currentSession);
 
   // Canvas overlay for landmark visualization in dev mode
   useCanvasOverlay({
@@ -86,15 +111,15 @@ export const VideoCapture = () => {
   });
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 border-2 border-green-200 gap-6">
       {/* Left Column - Video & Controls */}
-      <div className="lg:col-span-2 space-y-6">
+      <div className="border-2 border-green-400 lg:col-span-2 space-y-6">
         {/* Video Card */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md">
+                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md">
                   <svg
                     className="w-5 h-5 text-white"
                     fill="none"
@@ -239,21 +264,41 @@ export const VideoCapture = () => {
                 </div>
               )}
               {isCapturing && selfViewEnabled && (
-                <div className="absolute top-3 right-3">
-                  <span
-                    className="w-2 h-2 bg-red-500 rounded-full block"
-                    style={{
-                      boxShadow: '0 0 3px rgba(239, 68, 68, 0.4)',
-                    }}
-                  ></span>
+                <div className="absolute top-3 right-3 flex items-center gap-2 bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                  </span>
+                  <span className="text-white text-xs font-semibold">REC</span>
                 </div>
               )}
             </div>
 
+            {/* Session Timer - shows when session active, independent of camera */}
+            {isTracking && currentSession && (
+              <div className="mt-4">
+                <SessionTimer 
+                  elapsedSeconds={elapsedSeconds}
+                  isVisible={isTracking}
+                />
+              </div>
+            )}
+
             {/* Error Message */}
             {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                <p className="text-sm">{error}</p>
+              <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-400 px-4 py-3 rounded-r mb-4 flex items-start gap-3 shadow-md">
+                <svg
+                  className="w-5 h-5 flex-shrink-0 mt-0.5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <p className="text-sm font-medium">{error}</p>
               </div>
             )}
 
@@ -262,7 +307,7 @@ export const VideoCapture = () => {
               {!isCapturing ? (
                 <button
                   onClick={startCapture}
-                  className="flex items-center gap-2 px-5 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-400"
                   aria-label="Start Capture"
                 >
                   <svg
@@ -287,7 +332,7 @@ export const VideoCapture = () => {
               ) : (
                 <button
                   onClick={stopCapture}
-                  className="flex items-center gap-2 px-5 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white font-semibold shadow transition-colors focus:outline-none focus:ring-2 focus:ring-red-400"
+                  className="flex items-center gap-2 px-5 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-400"
                   aria-label="Stop Capture"
                 >
                   <svg
@@ -311,12 +356,129 @@ export const VideoCapture = () => {
               )}
             </div>
 
+            {/* Session Control Buttons */}
+            {isCapturing && (
+              <div className="flex justify-center gap-3 mb-4">
+                {!isTracking ? (
+                  <button
+                    onClick={startSession}
+                    className="flex items-center gap-2 px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    Start Session
+                  </button>
+                ) : (
+                  <>
+                    {currentSession?.isPaused ? (
+                      <button
+                        onClick={resumeSession}
+                        className="flex items-center gap-2 px-6 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-400"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        Resume Session
+                      </button>
+                    ) : (
+                      <button
+                        onClick={pauseSession}
+                        className="flex items-center gap-2 px-6 py-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        Pause Session
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowStopConfirm(true)}
+                      className="flex items-center gap-2 px-6 py-3 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                        <rect
+                          x="9"
+                          y="9"
+                          width="6"
+                          height="6"
+                          rx="1"
+                          fill="currentColor"
+                        />
+                      </svg>
+                      Stop Session
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* Status */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 mt-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md">
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-md relative ${
+                    isTracking ? 'bg-green-600' : 'bg-gray-500'
+                  }`}
+                >
+                  {isTracking && (
+                    <div className="absolute inset-0 rounded-xl bg-green-400 animate-ping opacity-20"></div>
+                  )}
                   <svg
-                    className="w-5 h-5 text-white"
+                    className="w-5 h-5 text-white relative z-10"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -330,19 +492,51 @@ export const VideoCapture = () => {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    Status
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      Status
+                    </h3>
+                    <span
+                      className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                        isTracking
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                          : 'bg-gray-100 dark:bg-gray-700/30 text-gray-600 dark:text-gray-400'
+                      }`}
+                    >
+                      {isTracking ? 'ONLINE' : 'OFFLINE'}
+                    </span>
+                  </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Real-time monitoring
+                    {isTracking
+                      ? 'Real-time monitoring active'
+                      : 'Monitoring paused'}
                   </p>
                 </div>
               </div>
 
               {/* Loading State */}
               {isPoseLoading && isCapturing && (
-                <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-3">
-                  <p className="text-sm">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 text-blue-700 dark:text-blue-400 px-4 py-3 rounded-r mb-3 flex items-start gap-3">
+                  <svg
+                    className="animate-spin h-5 w-5 flex-shrink-0 mt-0.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <p className="text-sm font-medium">
                     Initializing pose detection model...
                   </p>
                 </div>
@@ -350,51 +544,109 @@ export const VideoCapture = () => {
 
               {/* Pose Detection Error */}
               {poseError && (
-                <div className="bg-orange-50 border border-orange-200 text-orange-700 px-4 py-3 rounded mb-3">
+                <div className="bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 text-orange-700 dark:text-orange-400 px-4 py-3 rounded-r mb-3 flex items-start gap-3">
+                  <svg
+                    className="w-5 h-5 flex-shrink-0 mt-0.5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
                   <p className="text-sm">{poseError}</p>
                 </div>
               )}
 
               <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                {/* Activity Display (always show in dev mode) */}
+                {devMode && (
+                  <div className="mb-4 p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700">
+                    <div className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
+                      🎯 ACTIVITY DEBUG
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">isTracking:</span>
+                        <span className="font-mono text-gray-900 dark:text-gray-100">
+                          {isTracking ? '✅ true' : '❌ false'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">currentActivity:</span>
+                        <span className="font-mono text-gray-900 dark:text-gray-100">
+                          {currentActivity || 'null'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">activityConfidence:</span>
+                        <span className="font-mono text-gray-900 dark:text-gray-100">
+                          {Math.round((activityConfidence || 0) * 100)}%
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">isPresent:</span>
+                        <span className="font-mono text-gray-900 dark:text-gray-100">
+                          {isPresent ? '✅ true' : '❌ false'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Status with indicator */}
-                <div className={`flex items-center justify-between mb-4 p-4 rounded-lg shadow-sm border transition-all ${
-                  !isCapturing
-                    ? 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600'
-                    : isPoseLoading
-                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700'
-                    : isPresent
-                    ? 'bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-600'
-                    : 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700'
-                }`}>
-                  <span className="text-gray-900 dark:text-gray-100 font-semibold text-lg">
-                    Status:
-                  </span>
-                  <div className="flex items-center gap-3">
-                    {!isCapturing ? (
+                {!isCapturing && (
+                  <div className="flex items-center justify-between mb-4 p-4 rounded-lg shadow-sm border transition-all bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600">
+                    <span className="text-gray-900 dark:text-gray-100 font-semibold text-lg">
+                      Status:
+                    </span>
+                    <div className="flex items-center gap-3">
                       <span className="text-gray-500 dark:text-gray-400 italic text-lg">
                         Camera Off
                       </span>
-                    ) : isPoseLoading ? (
+                    </div>
+                  </div>
+                )}
+                {isCapturing && isPoseLoading && (
+                  <div className="flex items-center justify-between mb-4 p-4 rounded-lg shadow-sm border transition-all bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700">
+                    <span className="text-gray-900 dark:text-gray-100 font-semibold text-lg">
+                      Status:
+                    </span>
+                    <div className="flex items-center gap-3">
                       <span className="text-blue-600 dark:text-blue-400 italic text-lg">
                         Loading...
                       </span>
-                    ) : isPresent ? (
-                      <>
-                        <span className="w-5 h-5 bg-green-500 rounded-full animate-pulse shadow-lg ring-2 ring-green-300"></span>
-                        <span className="text-green-700 dark:text-green-300 font-bold text-xl">
-                          Present
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="w-5 h-5 bg-red-500 rounded-full shadow-lg"></span>
-                        <span className="text-red-600 dark:text-red-400 font-bold text-xl">
-                          Away
-                        </span>
-                      </>
-                    )}
+                    </div>
                   </div>
-                </div>
+                )}
+                {isCapturing && !isPoseLoading && isPresent && (
+                  <div className="flex items-center justify-between mb-4 p-4 rounded-lg shadow-sm border-2 transition-all bg-green-50 dark:bg-green-900/20 border-green-500 dark:border-green-600">
+                    <span className="text-gray-900 dark:text-gray-100 font-semibold text-lg">
+                      Status:
+                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="w-5 h-5 bg-green-600 dark:bg-green-500 rounded-full animate-pulse shadow-lg"></span>
+                      <span className="text-green-700 dark:text-green-400 font-bold text-xl">
+                        Present
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {isCapturing && !isPoseLoading && !isPresent && (
+                  <div className="flex items-center justify-between mb-4 p-4 rounded-lg shadow-sm border-2 transition-all bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-700">
+                    <span className="text-gray-900 dark:text-gray-100 font-semibold text-lg">
+                      Status:
+                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="w-5 h-5 bg-red-500 rounded-full shadow-lg"></span>
+                      <span className="text-red-600 dark:text-red-400 font-bold text-xl">
+                        Away
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Confidence Score */}
                 {isCapturing && !isPoseLoading && (
@@ -409,8 +661,8 @@ export const VideoCapture = () => {
                             confidence > 0.7
                               ? 'bg-green-500'
                               : confidence > 0.4
-                              ? 'bg-yellow-500'
-                              : 'bg-red-500'
+                                ? 'bg-yellow-500'
+                                : 'bg-red-500'
                           }`}
                           style={{ width: `${confidence * 100}%` }}
                         ></div>
@@ -431,6 +683,23 @@ export const VideoCapture = () => {
                     {formatDeskTime(deskTime)}
                   </span>
                 </div>
+
+                {/* Current Activity (when tracking) */}
+                {isTracking && currentActivity && currentActivity !== 'away' && (
+                  <div className="flex items-center justify-between py-2 mt-3 pt-3 border-t border-gray-300 dark:border-gray-600">
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">
+                      Current Activity:
+                    </span>
+                    <div className="text-right">
+                      <div className="text-gray-900 dark:text-gray-100 font-bold text-base flex items-center gap-2 justify-end">
+                        <span>{currentActivity}</span>
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {Math.round((activityConfidence || 0) * 100)}% confident
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -449,6 +718,8 @@ export const VideoCapture = () => {
           notificationPermission={notificationPermission}
           onRequestNotifications={requestPermission}
           onOpenStatsModal={() => setIsStatsModalOpen(true)}
+          currentActivity={currentActivity}
+          activityConfidence={activityConfidence}
         />
       </div>
 
@@ -467,6 +738,20 @@ export const VideoCapture = () => {
         onSave={updateSettings}
         notificationPermission={notificationPermission}
         onRequestNotifications={requestPermission}
+      />
+
+      <ConfirmDialog
+        isOpen={showStopConfirm}
+        onConfirm={() => {
+          stopSession();
+          setShowStopConfirm(false);
+        }}
+        onCancel={() => setShowStopConfirm(false)}
+        title="Stop Session?"
+        message="Are you sure you want to stop this session? This action cannot be undone."
+        confirmText="Stop Session"
+        cancelText="Keep Going"
+        variant="danger"
       />
     </div>
   );

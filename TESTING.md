@@ -34,8 +34,7 @@
 
 4. **Data Persistence**
 
-   - localStorage key: `aideskwatch_stats_v2`
-   - Auto-migrates from v1 format (`aideskwatch_presence`)
+   - localStorage key: `aideskwatch_stats`
    - Midnight rollover: Archives previous day, starts new day
    - Retention: 7 days detailed, 52 weeks aggregated, 24 months
 
@@ -61,7 +60,7 @@
   - "Presence Detected" shows as "Yes"
   - "Active Session" indicator appears (blue pulse)
   - "At Desk" time starts incrementing
-  - localStorage `aideskwatch_stats_v2` key appears
+   - localStorage `aideskwatch_stats` key appears
 - [ ] Wait 10 seconds
 - [ ] **Expected**: Sessions count = 1
 - [ ] Leave frame completely
@@ -84,7 +83,7 @@
 **Goal**: Verify data survives page refresh
 
 - [ ] With active tracking session, note current "At Desk" time
-- [ ] Open DevTools → Application → Local Storage → `aideskwatch_stats_v2`
+- [ ] Open DevTools → Application → Local Storage → `aideskwatch_stats`
 - [ ] Copy value to text editor for inspection
 - [ ] Refresh page (F5 or Cmd+R)
 - [ ] Click "Start Camera" again
@@ -95,7 +94,6 @@
   - JSON structure includes:
     ```json
     {
-      "version": 2,
       "recentDays": {
         "2026-01-08": {
           "sessions": [{
@@ -201,28 +199,22 @@
 
 ---
 
-### 🧪 Test 7: Data Migration from V1
+### 🧪 Test 7: localStorage Clear and Reset
 
-**Goal**: Verify old format converts correctly
+**Goal**: Verify data can be cleared and reset
 
 **Setup**:
 
 1. Clear localStorage (`localStorage.clear()` in console)
-2. Set old format manually:
-   ```javascript
-   localStorage.setItem('aideskwatch_presence', '7200'); // 2 hours
-   localStorage.setItem('aideskwatch_last_date', '2026-01-07');
-   ```
-3. Refresh page
+2. Refresh page
 
-- [ ] Check localStorage for `aideskwatch_stats_v2` key
+- [ ] Check localStorage for `aideskwatch_stats` key
 - [ ] **Expected**:
-  - New v2 key exists
-  - Contains migrated data from v1
-  - Shows 2 hours for 2026-01-07
-  - Console log: "Migration successful!"
+  - New stats structure is created
+  - Shows 0 hours for today
+  - Console shows initialization message
 
-**Pass Criteria**: ✅ V1 data preserved in v2 format
+**Pass Criteria**: ✅ App initializes cleanly with empty state
 
 ---
 

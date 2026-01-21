@@ -7,20 +7,19 @@ import {
   aggregateMonthlyStats,
   getWeekStartDate,
   formatDeskTime,
+  formatDeskTimeDisplay,
 } from '../presenceAnalyzer';
 import type {
   PresenceSession,
-  PresenceInterval,
-  DailyStats,
-  WeeklyAggregate,
 } from '../../types/stats';
 
 describe('presenceAnalyzer', () => {
   describe('calculateBreakTime', () => {
     it('should return 0 for session with no away intervals', () => {
       const session: PresenceSession = {
-        startTime: Date.now(),
-        endTime: Date.now() + 3600000, // 1 hour
+        id: 'session_1',
+        start: Date.now(),
+        end: Date.now() + 3600000, // 1 hour
         presence: [
           { type: 'present', start: Date.now(), end: Date.now() + 3600000 },
         ],
@@ -32,8 +31,9 @@ describe('presenceAnalyzer', () => {
     it('should calculate total break time from away intervals', () => {
       const now = Date.now();
       const session: PresenceSession = {
-        startTime: now,
-        endTime: now + 7200000, // 2 hours
+        id: 'session_2',
+        start: now,
+        end: now + 7200000, // 2 hours
         presence: [
           { type: 'present', start: now, end: now + 1800000 }, // 30 min
           { type: 'away', start: now + 1800000, end: now + 2400000 }, // 10 min break
@@ -49,15 +49,16 @@ describe('presenceAnalyzer', () => {
     it('should handle ongoing away interval (no end time)', () => {
       const now = Date.now();
       const session: PresenceSession = {
-        startTime: now,
-        endTime: undefined,
+        id: 'session_3',
+        start: now,
+        end: null,
         presence: [
           { type: 'present', start: now, end: now + 1800000 },
-          { type: 'away', start: now + 1800000, end: undefined },
+          { type: 'away', start: now + 1800000, end: now + 1800000 },
         ],
       };
 
-      // Should not count ongoing interval
+      // Should not count ongoing interval (end equals start means no duration yet)
       expect(calculateBreakTime(session)).toBe(0);
     });
   });
@@ -65,8 +66,9 @@ describe('presenceAnalyzer', () => {
   describe('calculateContinuousDeskTime', () => {
     it('should return 0 for session with no presence intervals', () => {
       const session: PresenceSession = {
-        startTime: Date.now(),
-        endTime: undefined,
+        id: 'session_4',
+        start: Date.now(),
+        end: null,
         presence: [],
       };
 
@@ -76,8 +78,9 @@ describe('presenceAnalyzer', () => {
     it('should find longest continuous presence period', () => {
       const now = Date.now();
       const session: PresenceSession = {
-        startTime: now,
-        endTime: undefined,
+        id: 'session_5',
+        start: now,
+        end: null,
         presence: [
           { type: 'present', start: now, end: now + 1800000 }, // 30 min
           { type: 'away', start: now + 1800000, end: now + 2400000 },
@@ -95,13 +98,14 @@ describe('presenceAnalyzer', () => {
       const now = Date.now();
       const fiveMinutesAgo = now - 300000; // 5 minutes ago
       const session: PresenceSession = {
-        startTime: fiveMinutesAgo,
-        endTime: undefined,
+        id: 'session_6',
+        start: fiveMinutesAgo,
+        end: null,
         presence: [
           {
             type: 'present',
             start: fiveMinutesAgo,
-            end: undefined,
+            end: now,
           },
         ],
       };
@@ -136,36 +140,18 @@ describe('presenceAnalyzer', () => {
 
   describe('aggregateWeeklyStats', () => {
     it('should sum desk time and break time across days', () => {
-      const days: Record<string, DailyStats> = {
+      const days: Record<string, { deskTimeSeconds: number; breakTimeSeconds: number }> = {
         '2026-01-06': {
-          date: '2026-01-06',
-          sessions: [],
-          totalDeskTime: 7200, // 2 hours
-          totalBreakTime: 600, // 10 min
-          deskTimeSeconds: 7200,
-          breakTimeSeconds: 600,
-          goalHours: 4,
-          lastUpdated: Date.now(),
+          deskTimeSeconds: 7200, // 2 hours
+          breakTimeSeconds: 600, // 10 min
         },
         '2026-01-07': {
-          date: '2026-01-07',
-          sessions: [],
-          totalDeskTime: 10800, // 3 hours
-          totalBreakTime: 900, // 15 min
-          deskTimeSeconds: 10800,
-          breakTimeSeconds: 900,
-          goalHours: 4,
-          lastUpdated: Date.now(),
+          deskTimeSeconds: 10800, // 3 hours
+          breakTimeSeconds: 900, // 15 min
         },
         '2026-01-08': {
-          date: '2026-01-08',
-          sessions: [],
-          totalDeskTime: 14400, // 4 hours
-          totalBreakTime: 1200, // 20 min
-          deskTimeSeconds: 14400,
-          breakTimeSeconds: 1200,
-          goalHours: 4,
-          lastUpdated: Date.now(),
+          deskTimeSeconds: 14400, // 4 hours
+          breakTimeSeconds: 1200, // 20 min
         },
       };
 
@@ -189,20 +175,16 @@ describe('presenceAnalyzer', () => {
 
   describe('aggregateMonthlyStats', () => {
     it('should aggregate weekly stats into monthly', () => {
-      const weeks: WeeklyAggregate[] = [
+      const weeks: { totalDeskTimeSeconds: number; totalBreakTimeSeconds: number; daysActive: number }[] = [
         {
-          weekStart: '2026-01-05',
           totalDeskTimeSeconds: 72000, // 20 hours
           totalBreakTimeSeconds: 3600,
           daysActive: 5,
-          averageDailyHours: 4,
         },
         {
-          weekStart: '2026-01-12',
           totalDeskTimeSeconds: 64800, // 18 hours
           totalBreakTimeSeconds: 2700,
           daysActive: 5,
-          averageDailyHours: 3.6,
         },
       ];
 
@@ -244,18 +226,43 @@ describe('presenceAnalyzer', () => {
   });
 
   describe('formatDeskTime', () => {
-    it('should format seconds as HH:MM:SS', () => {
-      expect(formatDeskTime(3661)).toBe('01:01:01');
-      expect(formatDeskTime(7200)).toBe('02:00:00');
-      expect(formatDeskTime(45)).toBe('00:00:45');
-    });
-
-    it('should handle zero time', () => {
-      expect(formatDeskTime(0)).toBe('00:00:00');
+    it('should format seconds as HH:mm without seconds', () => {
+      expect(formatDeskTime(0)).toBe('00:00');
+      expect(formatDeskTime(59)).toBe('00:00'); // Rounds down
+      expect(formatDeskTime(60)).toBe('00:01');
+      expect(formatDeskTime(3600)).toBe('01:00');
+      expect(formatDeskTime(3661)).toBe('01:01'); // 1h 1m 1s -> shows 1h 1m
+      expect(formatDeskTime(7200)).toBe('02:00');
+      expect(formatDeskTime(7259)).toBe('02:00'); // 2h 0m 59s -> shows 2h 0m
+      expect(formatDeskTime(7260)).toBe('02:01'); // 2h 1m 0s -> shows 2h 1m
     });
 
     it('should handle large values', () => {
-      expect(formatDeskTime(86400)).toBe('24:00:00'); // 24 hours
+      expect(formatDeskTime(86400)).toBe('24:00'); // 24 hours
+      expect(formatDeskTime(90000)).toBe('25:00'); // 25 hours
+    });
+
+    it('should pad hours and minutes with zeros', () => {
+      expect(formatDeskTime(60)).toBe('00:01');
+      expect(formatDeskTime(600)).toBe('00:10');
+      expect(formatDeskTime(3600)).toBe('01:00');
+      expect(formatDeskTime(36000)).toBe('10:00');
+    });
+  });
+
+  describe('formatDeskTimeDisplay', () => {
+    it('should format seconds as HH:mm without seconds', () => {
+      expect(formatDeskTimeDisplay(3661)).toBe('01:01'); // 1h 1m
+      expect(formatDeskTimeDisplay(7200)).toBe('02:00'); // 2h 0m
+      expect(formatDeskTimeDisplay(45)).toBe('00:00'); // <1m rounds down
+    });
+
+    it('should handle zero time', () => {
+      expect(formatDeskTimeDisplay(0)).toBe('00:00');
+    });
+
+    it('should handle large values', () => {
+      expect(formatDeskTimeDisplay(86400)).toBe('24:00'); // 24 hours
     });
   });
 });

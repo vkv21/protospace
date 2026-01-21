@@ -10,13 +10,13 @@ afterEach(() => {
 });
 
 // Mock Notification API
-global.Notification = {
+globalThis.Notification = {
   permission: 'default',
   requestPermission: vi.fn(() => Promise.resolve('granted')),
 } as unknown as typeof Notification;
 
 // Mock BroadcastChannel
-global.BroadcastChannel = vi.fn().mockImplementation((name: string) => ({
+globalThis.BroadcastChannel = vi.fn().mockImplementation((name: string) => ({
   name,
   postMessage: vi.fn(),
   close: vi.fn(),
@@ -26,7 +26,7 @@ global.BroadcastChannel = vi.fn().mockImplementation((name: string) => ({
 })) as unknown as typeof BroadcastChannel;
 
 // Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
+globalThis.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),

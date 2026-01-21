@@ -4,6 +4,7 @@ import { scaleTime } from 'd3-scale';
 import { axisBottom } from 'd3-axis';
 import { zoom as d3Zoom, zoomIdentity, type ZoomBehavior } from 'd3-zoom';
 import type { PresenceInterval } from '../types/stats';
+import { formatDuration } from '../utils/presenceAnalyzer';
 
 interface UseD3TimelineOptions {
   width: number;
@@ -279,13 +280,6 @@ export const useD3Timeline = ({
       if (tooltip) {
         tooltip.style('opacity', '0');
       }
-    }
-
-    function formatDuration(seconds: number): string {
-      const h = Math.floor(seconds / 3600);
-      const m = Math.floor((seconds % 3600) / 60);
-      const s = seconds % 60;
-      return `${h}h ${m}m ${s}s`;
     }
 
     // Cleanup

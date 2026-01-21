@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { formatDeskTime, formatGoalProgress } from '../utils/presenceAnalyzer';
+import { getActivityLabel, getActivityIcon } from '../utils/activityAnalyzer';
 import { TimelineChart } from './TimelineChart';
 import { WeeklyBarChart } from './WeeklyBarChart';
+import { StatBox } from './StatBox';
+import { GoalProgressBox } from './GoalProgressBox';
 import type {
   DailyStats as DailyStatsType,
   PresenceSession,
+  ActivityType,
 } from '../types/stats';
 
 interface DailyStatsProps {
@@ -17,6 +21,8 @@ interface DailyStatsProps {
   notificationPermission?: NotificationPermission;
   onRequestNotifications?: () => void;
   onOpenStatsModal?: () => void;
+  currentActivity?: ActivityType | null;
+  activityConfidence?: number;
 }
 
 export const DailyStats = ({
@@ -29,6 +35,8 @@ export const DailyStats = ({
   notificationPermission,
   onRequestNotifications,
   onOpenStatsModal,
+  currentActivity,
+  activityConfidence,
 }: DailyStatsProps) => {
   // Persistent expand/collapse state for advanced panels
   const [showTimeline, setShowTimeline] = useState(() => {
@@ -102,71 +110,80 @@ export const DailyStats = ({
   // Convert seconds to hours for goal progress calculation
   const currentHours = stats.totalDeskTime / 3600;
   const goalProgress = formatGoalProgress(currentHours, stats.goalHours);
-  const breakTimeFormatted = formatDeskTime(Math.floor(stats.totalBreakTime));
 
   // Get color based on goal progress
   const getProgressColor = () => {
-    if (goalProgress >= 80) return 'text-green-600';
-    if (goalProgress >= 50) return 'text-yellow-600';
-    return 'text-gray-600';
+    if (goalProgress >= 100) return 'text-emerald-600 dark:text-emerald-400';
+    if (goalProgress >= 80) return 'text-green-600 dark:text-green-400';
+    if (goalProgress >= 50) return 'text-yellow-600 dark:text-yellow-400';
+    if (goalProgress >= 25) return 'text-orange-600 dark:text-orange-400';
+    return 'text-red-600 dark:text-red-400';
+  };
+
+  const getProgressBg = () => {
+    if (goalProgress >= 100)
+      return 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800';
+    if (goalProgress >= 80)
+      return 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800';
+    if (goalProgress >= 50)
+      return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800';
+    if (goalProgress >= 25)
+      return 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800';
+    return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800';
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-3 sm:p-4 space-y-3 sm:space-y-4 border border-gray-200 dark:border-gray-700">
+    <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-3 sm:p-4 space-y-3 sm:space-y-4 border border-gray-200 dark:border-gray-700">
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
         {/* At Desk */}
-        <div className="bg-white/80 dark:bg-gray-900/80 rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-start min-w-[100px] min-h-[60px] sm:min-h-[70px]">
-          <div className="text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-300 mb-0.5 tracking-wide uppercase">
-            At Desk
-          </div>
-          <div className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap overflow-hidden">
-            {formatDeskTime(Math.floor(stats.totalDeskTime))}
-          </div>
-        </div>
+        <StatBox
+          title="At Desk"
+          value={formatDeskTime(Math.floor(stats.totalDeskTime))}
+        />
 
         {/* Break Time */}
-        <div className="bg-white/80 dark:bg-gray-900/80 rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-start min-w-[100px] min-h-[60px] sm:min-h-[70px]">
-          <div className="text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-300 mb-0.5 tracking-wide uppercase">
-            Break Time
-          </div>
-          <div className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap overflow-hidden">
-            {breakTimeFormatted}
-          </div>
-        </div>
+        <StatBox
+          title="Break Time"
+          value={formatDeskTime(Math.floor(stats.totalBreakTime))}
+        />
 
         {/* Sessions */}
-        <div className="bg-white/80 dark:bg-gray-900/80 rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-start min-w-[100px] min-h-[60px] sm:min-h-[70px]">
-          <div className="text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-300 mb-0.5 tracking-wide uppercase">
-            Sessions
-          </div>
-          <div className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap overflow-hidden">
-            {stats.sessions.length}
-          </div>
-        </div>
+        <StatBox title="Sessions" value={stats.sessions.length} />
 
         {/* Goal Progress */}
-        <div className="bg-white/80 dark:bg-gray-900/80 rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-start min-w-[100px] min-h-[60px] sm:min-h-[70px]">
-          <div className="text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-300 mb-0.5 tracking-wide uppercase">
-            Goal Progress
+        <GoalProgressBox
+          goalProgress={goalProgress}
+          goalHours={stats.goalHours}
+          getProgressColor={getProgressColor}
+          getProgressBg={getProgressBg}
+        />
+      </div>
+
+      {/* Current Activity (when tracking) - Full width below stats */}
+      {isTracking && currentActivity && currentActivity !== 'away' && (
+        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 p-4 sm:p-5 rounded-xl border border-purple-200/50 dark:border-purple-700/50 shadow-sm">
+          <div className="text-xs sm:text-sm font-semibold text-purple-700 dark:text-purple-300 mb-2 tracking-wide uppercase flex items-center gap-2">
+            <span className="text-lg">{getActivityIcon(currentActivity)}</span>
+            <span>Current Activity</span>
           </div>
-          <div
-            className={`text-lg sm:text-xl font-bold whitespace-nowrap overflow-hidden ${getProgressColor()}`}
-          >
-            {goalProgress}%
-          </div>
-          <div className="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate">
-            {stats.goalHours}h goal
+          <div className="space-y-2">
+            <div className="text-2xl sm:text-3xl font-bold text-purple-900 dark:text-purple-100">
+              {getActivityLabel(currentActivity)}
+            </div>
+            <div className="text-xs text-purple-600 dark:text-purple-400">
+              Confidence: {Math.round((activityConfidence || 0) * 100)}%
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* View Details Button */}
       {onOpenStatsModal && (
         <div className="flex justify-center">
           <button
             onClick={onOpenStatsModal}
-            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors shadow-sm"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg"
           >
             View Details
           </button>
@@ -175,17 +192,19 @@ export const DailyStats = ({
 
       {/* Notification Permission Banner */}
       {notificationPermission === 'default' && (
-        <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg p-3 sm:p-3.5">
+        <div className="bg-amber-50 dark:bg-amber-900/30 border-l-4 border-amber-500 dark:border-amber-600 rounded-r-lg p-3 sm:p-3.5 shadow-sm">
           <div className="flex items-center gap-2.5">
-            <div className="text-amber-600 dark:text-amber-400 text-base sm:text-lg">
-              🔔
+            <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-800/50 flex items-center justify-center">
+              <span className="text-amber-600 dark:text-amber-400 text-lg">
+                🔔
+              </span>
             </div>
-            <span className="text-xs sm:text-sm text-amber-700 dark:text-amber-300 flex-1">
+            <span className="text-xs sm:text-sm text-amber-800 dark:text-amber-200 flex-1 font-medium">
               Enable break reminders for healthy work habits
             </span>
             <button
               onClick={onRequestNotifications}
-              className="bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors whitespace-nowrap shadow-sm"
+              className="bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all whitespace-nowrap shadow-sm hover:shadow-md font-semibold"
             >
               Enable
             </button>
@@ -195,12 +214,17 @@ export const DailyStats = ({
 
       {/* Notification Status */}
       {notificationPermission === 'granted' && (
-        <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg p-2.5 sm:p-3">
+        <div className="bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 dark:border-green-600 rounded-r-lg p-2.5 sm:p-3 shadow-sm">
           <div className="flex items-center gap-2.5">
-            <div className="text-green-600 dark:text-green-400 text-base sm:text-lg">
-              ✓
+            <div className="relative flex h-6 w-6">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-20"></span>
+              <span className="relative flex items-center justify-center rounded-full h-6 w-6 bg-green-100 dark:bg-green-800/50">
+                <span className="text-green-600 dark:text-green-400 text-base">
+                  ✓
+                </span>
+              </span>
             </div>
-            <span className="text-xs sm:text-sm text-green-700 dark:text-green-300">
+            <span className="text-xs sm:text-sm text-green-800 dark:text-green-200 font-medium">
               Break reminders enabled
             </span>
           </div>
@@ -299,7 +323,7 @@ export const DailyStats = ({
       {/* Tracking Status */}
       {isTracking && currentSession && (
         <div
-          className="bg-blue-50 border border-blue-200 rounded-lg p-3 cursor-pointer hover:bg-blue-100 transition-colors"
+          className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
           onClick={() => setIsSessionExpanded(!isSessionExpanded)}
         >
           <div className="space-y-3">
@@ -307,17 +331,17 @@ export const DailyStats = ({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-blue-900">
+                  <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
                     Active Session
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-blue-600">
+                  <span className="text-xs text-blue-600 dark:text-blue-300">
                     {formatDeskTime(Math.floor(sessionDeskTime))} / 1h
                   </span>
                   <svg
-                    className={`w-4 h-4 text-blue-600 transition-transform ${
+                    className={`w-4 h-4 text-blue-600 dark:text-blue-300 transition-transform ${
                       isSessionExpanded ? 'rotate-180' : ''
                     }`}
                     fill="none"
@@ -335,9 +359,9 @@ export const DailyStats = ({
               </div>
 
               {/* Progress bar */}
-              <div className="w-full bg-blue-200 rounded-full h-2 overflow-hidden">
+              <div className="w-full bg-blue-200 dark:bg-blue-800/30 rounded-full h-2 overflow-hidden">
                 <div
-                  className="bg-blue-600 h-full transition-all duration-300 ease-out"
+                  className="bg-blue-600 dark:bg-blue-500 h-full transition-all duration-300 ease-out"
                   style={{
                     width: `${Math.min((sessionDeskTime / 3600) * 100, 100)}%`,
                   }}
@@ -347,22 +371,28 @@ export const DailyStats = ({
 
             {/* Expanded details */}
             {isSessionExpanded && (
-              <div className="grid grid-cols-3 gap-3 text-sm pt-2 border-t border-blue-200">
+              <div className="grid grid-cols-3 gap-3 text-sm pt-2 border-t border-blue-200 dark:border-blue-800">
                 <div>
-                  <div className="text-xs text-blue-600">Desk Time</div>
-                  <div className="font-semibold text-blue-900">
+                  <div className="text-xs text-blue-600 dark:text-blue-400">
+                    Desk Time
+                  </div>
+                  <div className="font-semibold text-blue-900 dark:text-blue-100">
                     {formatDeskTime(Math.floor(sessionDeskTime))}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-blue-600">Break Time</div>
-                  <div className="font-semibold text-blue-900">
+                  <div className="text-xs text-blue-600 dark:text-blue-400">
+                    Break Time
+                  </div>
+                  <div className="font-semibold text-blue-900 dark:text-blue-100">
                     {formatDeskTime(Math.floor(sessionBreakTime))}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-blue-600">Continuous</div>
-                  <div className="font-semibold text-blue-900">
+                  <div className="text-xs text-blue-600 dark:text-blue-400">
+                    Continuous
+                  </div>
+                  <div className="font-semibold text-blue-900 dark:text-blue-100">
                     {formatDeskTime(Math.floor(continuousDeskTime))}
                   </div>
                 </div>

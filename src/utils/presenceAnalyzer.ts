@@ -122,19 +122,6 @@ export function analyzePoseLandmarks(
 }
 
 /**
- * Format seconds into HH:MM:SS display format
- */
-export function formatDeskTime(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-
-  return `${hours.toString().padStart(2, '0')}:${minutes
-    .toString()
-    .padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}
-
-/**
  * Calculate total break time from a session's away intervals
  */
 export function calculateBreakTime(session: {
@@ -292,6 +279,47 @@ export function generateJSON(stats: any): string {
   };
 
   return JSON.stringify(exportData, null, 2);
+}
+
+/**
+ * Format seconds into HH:mm display format (hours:minutes, no seconds)
+ * @param seconds - Time in seconds
+ * @returns Formatted time string (e.g., "02:34")
+ */
+export function formatDeskTime(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+
+  return `${hours.toString().padStart(2, '0')}:${minutes
+    .toString()
+    .padStart(2, '0')}`;
+}
+
+/**
+ * Format seconds into HH:mm display format (same as formatDeskTime)
+ * Alias for consistency with test expectations
+ */
+export function formatDeskTimeDisplay(seconds: number): string {
+  return formatDeskTime(seconds);
+}
+
+/**
+ * Format duration in seconds to a readable string (for tooltips)
+ * @param seconds - Duration in seconds
+ * @returns Formatted duration string (e.g., "1h 23m")
+ */
+export function formatDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${secs}s`;
+  } else {
+    return `${secs}s`;
+  }
 }
 
 /**

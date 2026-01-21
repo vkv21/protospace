@@ -3,7 +3,6 @@ import type {
   DailyStats,
   WeeklyAggregate,
   MonthlyAggregate,
-  PresenceSession,
 } from '../types/stats';
 import {
   DEFAULT_SETTINGS,
@@ -18,11 +17,11 @@ import {
 } from './presenceAnalyzer';
 
 /**
- * Load statistics data from localStorage (v2 format)
+ * Load statistics data from localStorage
  */
-export function loadStatsV2(): StatsData | null {
+export function loadStats(): StatsData | null {
   try {
-    const stored = localStorage.getItem(STORAGE_KEYS.STATS_V2);
+    const stored = localStorage.getItem(STORAGE_KEYS.STATS);
     if (!stored) return null;
 
     const data: StatsData = JSON.parse(stored);
@@ -38,7 +37,7 @@ export function loadStatsV2(): StatsData | null {
  */
 export function saveStats(stats: StatsData): void {
   try {
-    localStorage.setItem(STORAGE_KEYS.STATS_V2, JSON.stringify(stats));
+    localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(stats));
   } catch (error) {
     console.error('Failed to save stats to localStorage:', error);
     // Check if quota exceeded
@@ -47,79 +46,11 @@ export function saveStats(stats: StatsData): void {
       cleanupOldData(stats);
       // Try saving again after cleanup
       try {
-        localStorage.setItem(STORAGE_KEYS.STATS_V2, JSON.stringify(stats));
+        localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(stats));
       } catch (retryError) {
         console.error('Failed to save even after cleanup:', retryError);
       }
     }
-  }
-}
-
-/**
- * Migrate from v1 format to v2
- */
-export function migrateFromV1(): StatsData | null {
-  try {
-    const oldData = localStorage.getItem(STORAGE_KEYS.LEGACY_PRESENCE);
-    const oldDate = localStorage.getItem(STORAGE_KEYS.LEGACY_DATE);
-
-    if (!oldData || !oldDate) return null;
-
-    const { deskTime } = JSON.parse(oldData);
-    const date = new Date(oldDate);
-    const isoDate = date.toISOString().split('T')[0];
-
-    console.log(`Migrating v1 data: ${deskTime} seconds from ${isoDate}`);
-
-    // Create migrated session (we don't have timeline, so create one big session)
-    const migratedSession: PresenceSession = {
-      id: `migrated_${Date.now()}`,
-      start: date.getTime(),
-      end: date.getTime() + deskTime * 1000,
-      presence: [
-        {
-          type: 'present',
-          start: date.getTime(),
-          end: date.getTime() + deskTime * 1000,
-        },
-      ],
-    };
-
-    const newData: StatsData = {
-      version: 2,
-      recentDays: {
-        [isoDate]: {
-          date: isoDate,
-          sessions: [migratedSession],
-          totalDeskTime: deskTime,
-          totalBreakTime: 0,
-          goalHours: DEFAULT_SETTINGS.dailyGoalHours,
-          lastUpdated: Date.now(),
-        },
-      },
-      historicalWeeks: [],
-      historicalMonths: [],
-      allTime: {
-        totalDeskTime: deskTime,
-        startDate: isoDate,
-        daysTracked: 1,
-        avgDailyHours: deskTime / 3600,
-      },
-      settings: { ...DEFAULT_SETTINGS },
-      notifications: { ...DEFAULT_NOTIFICATIONS },
-    };
-
-    // Save new format
-    saveStats(newData);
-
-    // Keep old keys for 7 days as backup
-    localStorage.setItem('aideskwatch_migrated_date', new Date().toISOString());
-
-    console.log('Migration successful!');
-    return newData;
-  } catch (error) {
-    console.error('Migration failed:', error);
-    return null;
   }
 }
 
@@ -130,7 +61,6 @@ export function createInitialStats(): StatsData {
   const today = new Date().toISOString().split('T')[0];
 
   return {
-    version: 2,
     recentDays: {},
     historicalWeeks: [],
     historicalMonths: [],
@@ -149,16 +79,8 @@ export function createInitialStats(): StatsData {
  * Load or initialize statistics data
  */
 export function loadOrInitializeStats(): StatsData {
-  // Try loading v2 format
-  let stats = loadStatsV2();
-  if (stats) return stats;
-
-  // Try migrating from v1
-  stats = migrateFromV1();
-  if (stats) return stats;
-
-  // Create fresh data
-  return createInitialStats();
+  const stats = loadStats();
+  return stats ?? createInitialStats();
 }
 
 /**
@@ -364,10 +286,8 @@ export function exportToJSON(stats: StatsData): string {
  * Clear all statistics data
  */
 export function clearAllData(): void {
-  localStorage.removeItem(STORAGE_KEYS.STATS_V2);
+  localStorage.removeItem(STORAGE_KEYS.STATS);
   localStorage.removeItem(STORAGE_KEYS.CONFIG);
-  localStorage.removeItem(STORAGE_KEYS.LEGACY_PRESENCE);
-  localStorage.removeItem(STORAGE_KEYS.LEGACY_DATE);
   console.log('All statistics data cleared');
 }
 

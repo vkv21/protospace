@@ -2,11 +2,10 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   loadOrInitializeStats,
   saveStats,
-  migrateFromV1,
   exportToCSV,
   exportToJSON,
 } from '../statsStorage';
-import type { StatsData, DailyStats } from '../../types/stats';
+import type { StatsData } from '../../types/stats';
 
 describe('statsStorage', () => {
   beforeEach(() => {
@@ -18,7 +17,6 @@ describe('statsStorage', () => {
     it('should initialize with default stats when no data exists', () => {
       const stats = loadOrInitializeStats();
 
-      expect(stats.version).toBe(2);
       expect(stats.settings.dailyGoalHours).toBe(4);
       expect(stats.settings.weeklyGoalHours).toBe(20);
       expect(stats.settings.breakReminderEnabled).toBe(true);
@@ -27,9 +25,8 @@ describe('statsStorage', () => {
       expect(Object.keys(stats.recentDays)).toHaveLength(0);
     });
 
-    it('should load existing v2 data from localStorage', () => {
+    it('should load existing data from localStorage', () => {
       const mockStats: StatsData = {
-        version: 2,
         recentDays: {
           '2026-01-08': {
             date: '2026-01-08',
@@ -62,33 +59,18 @@ describe('statsStorage', () => {
         },
       };
 
-      localStorage.setItem('aideskwatch_stats_v2', JSON.stringify(mockStats));
+      localStorage.setItem('aideskwatch_stats', JSON.stringify(mockStats));
 
       const stats = loadOrInitializeStats();
 
-      expect(stats.version).toBe(2);
       expect(stats.recentDays['2026-01-08'].totalDeskTime).toBe(7200);
     });
 
-    it('should migrate v1 data if v2 does not exist', () => {
-      // Set up v1 data
-      const v1Data = { deskTime: 7200 }; // 2 hours
-      localStorage.setItem('aideskwatch_presence', JSON.stringify(v1Data));
-      localStorage.setItem('aideskwatch_last_date', '2026-01-07');
-
-      const stats = loadOrInitializeStats();
-
-      expect(stats.version).toBe(2);
-      expect(stats.recentDays['2026-01-07']).toBeDefined();
-      expect(stats.recentDays['2026-01-07'].totalDeskTime).toBe(7200);
-    });
-
     it('should handle corrupted JSON gracefully', () => {
-      localStorage.setItem('aideskwatch_stats_v2', 'invalid{json}');
+      localStorage.setItem('aideskwatch_stats', 'invalid{json}');
 
       const stats = loadOrInitializeStats();
 
-      expect(stats.version).toBe(2);
       expect(Object.keys(stats.recentDays)).toHaveLength(0);
     });
   });
@@ -107,7 +89,7 @@ describe('statsStorage', () => {
 
       saveStats(stats);
 
-      const saved = localStorage.getItem('aideskwatch_stats_v2');
+      const saved = localStorage.getItem('aideskwatch_stats');
       expect(saved).toBeTruthy();
 
       const parsed = JSON.parse(saved!);
@@ -131,42 +113,9 @@ describe('statsStorage', () => {
     });
   });
 
-  describe('migrateFromV1', () => {
-    it('should convert v1 data to v2 format', () => {
-      const v1Data = { deskTime: 14400 }; // 4 hours
-      localStorage.setItem('aideskwatch_presence', JSON.stringify(v1Data));
-      localStorage.setItem('aideskwatch_last_date', '2026-01-07');
-
-      const stats = migrateFromV1();
-
-      expect(stats).toBeDefined();
-      expect(stats!.version).toBe(2);
-      expect(stats!.recentDays['2026-01-07']).toBeDefined();
-      expect(stats!.recentDays['2026-01-07'].totalDeskTime).toBe(14400);
-      expect(stats!.recentDays['2026-01-07'].sessions).toHaveLength(1);
-      expect(stats!.recentDays['2026-01-07'].sessions[0].presence).toHaveLength(
-        1
-      );
-    });
-
-    it('should return null if no v1 data exists', () => {
-      const stats = migrateFromV1();
-      expect(stats).toBeNull();
-    });
-
-    it('should handle invalid v1 data', () => {
-      localStorage.setItem('aideskwatch_presence', 'invalid');
-      localStorage.setItem('aideskwatch_last_date', '2026-01-07');
-
-      const stats = migrateFromV1();
-      expect(stats).toBeNull();
-    });
-  });
-
   describe('exportToCSV', () => {
     it('should generate CSV with headers and data', () => {
       const stats: StatsData = {
-        version: 2,
         recentDays: {
           '2026-01-08': {
             date: '2026-01-08',
@@ -245,7 +194,6 @@ describe('statsStorage', () => {
       const parsed = JSON.parse(json);
 
       expect(parsed.metadata).toBeDefined();
-      expect(parsed.metadata.version).toBe(2);
       expect(parsed.metadata.exportDate).toBeDefined();
       expect(parsed.metadata.timezone).toBeDefined();
       expect(parsed.data).toEqual(stats);

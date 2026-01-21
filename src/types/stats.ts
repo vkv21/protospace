@@ -2,20 +2,40 @@
  * Types for session-based statistics tracking and historical data management
  */
 
+// Activity types that can be detected from pose landmarks
+export type ActivityType = 
+  | 'typing'          // Hands near keyboard, elbows bent
+  | 'mouse'           // One hand extended, asymmetric
+  | 'reading'         // Upright posture, minimal movement
+  | 'leaning_back'    // Reclined, relaxed
+  | 'leaning_forward' // Hunched, close to desk
+  | 'phone_call'      // Hand near head
+  | 'stretching'      // Arms extended
+  | 'idle'            // Present but no specific activity
+  | 'away';           // Not present
+
+// Series of presence/absence within a session
 export interface PresenceInterval {
-  type: 'present' | 'away';
+  type: 'present' | 'away' | 'paused';
   start: number; // Unix timestamp (ms)
   end: number; // Unix timestamp (ms)
   confidence?: number; // Average confidence during interval (0-1)
+  activity?: ActivityType; // Detected activity during presence (if present)
 }
 
+// A single session of user activity as a series of presence intervals
 export interface PresenceSession {
   id: string; // Unique session identifier
   start: number; // Unix timestamp (ms)
   end: number | null; // null if ongoing
   presence: PresenceInterval[];
+  isPaused?: boolean; // Session is paused (temporary stop, not ended)
+  pausedAt?: number; // Unix timestamp (ms) when paused
 }
 
+// Daily statistics including multiple sessions
+// totalDeskTime calculated as sum of 'present' intervals in seconds.
+// This calculation happens when sessions are saved.
 export interface DailyStats {
   date: string; // ISO date: "2026-01-08"
   sessions: PresenceSession[];
@@ -63,7 +83,6 @@ export interface NotificationPreferences {
 }
 
 export interface StatsData {
-  version: number; // Schema version for migrations
   recentDays: {
     [date: string]: DailyStats; // Last 7 days with detailed sessions
   };
@@ -91,11 +110,8 @@ export const DEFAULT_NOTIFICATIONS: NotificationPreferences = {
 
 // Storage keys
 export const STORAGE_KEYS = {
-  STATS_V2: 'aideskwatch_stats_v2',
+  STATS: 'aideskwatch_stats',
   CONFIG: 'aideskwatch_config',
-  // Legacy keys for migration
-  LEGACY_PRESENCE: 'aideskwatch_presence',
-  LEGACY_DATE: 'aideskwatch_last_date',
 } as const;
 
 // Retention policy
