@@ -40,6 +40,7 @@ jobs:
       - name: 🏗️ Build Docker image
         run: |
           docker build \
+            --platform linux/arm64 \
             --build-arg VITE_API_URL=${{ secrets.VITE_API_URL || 'https://commitspace.com/api' }} \
             -t commitspace:${{ github.sha }} \
             -t commitspace:latest \
