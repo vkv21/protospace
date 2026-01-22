@@ -17,6 +17,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }} # ensures environment secrets are available
 
     steps:
       - name: 📥 Checkout code
