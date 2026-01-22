@@ -16,7 +16,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest-arm64
+    runs-on: ubuntu-latest
     env:
       DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'production' }}
     environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'production' }}
@@ -37,13 +37,20 @@ jobs:
         run: npm test -- --run || echo "No tests configured yet"
         continue-on-error: true
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: 🏗️ Build Docker image
         run: |
-          docker build \
+          docker buildx build \
             --platform linux/arm64 \
             --build-arg VITE_API_URL=${{ secrets.VITE_API_URL || 'https://commitspace.com/api' }} \
             -t commitspace:${{ github.sha }} \
             -t commitspace:latest \
+            --load \
             .
 
       - name: 💾 Save Docker image
