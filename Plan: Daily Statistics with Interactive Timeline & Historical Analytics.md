@@ -6,7 +6,7 @@ Implement comprehensive daily statistics with D3.js-powered interactive timeline
 
 1. **Create comprehensive type definitions** in new file [types/stats.ts](types/stats.ts) - Define `PresenceSession` with `PresenceInterval[]` for tracking presence/away periods, `DailyStats` with sessions array and cached totals, `StatsData` with recent days (7 days detailed) + historical aggregates (weekly/monthly), `UserSettings` with `dailyGoalHours: 4`, `weeklyGoalHours: 20`, and `breakReminderEnabled: true`, `breakReminderInterval: 120` (minutes) defaults, and `NotificationPreferences` for notification settings
 
-2. **Build statistics storage layer** in new file [utils/statsStorage.ts](utils/statsStorage.ts) - Implement `loadStatsV2()`, `saveStats()`, `migrateFromV1()` to convert existing `aideskwatch_presence` data preserving desk time, `aggregateOldSessions()` to compress 7+ day old data into weekly summaries, `aggregateOldWeeks()` for monthly compression after 1 year, `exportToCSV()` and `exportToJSON()` functions for data export with timestamp and metadata, and `clearAllData()` for privacy compliance
+2. **Build statistics storage layer** in new file [utils/statsStorage.ts](utils/statsStorage.ts) - Implement `loadStatsV2()`, `saveStats()`, `migrateFromV1()` to convert existing `commitspace_presence` data preserving desk time, `aggregateOldSessions()` to compress 7+ day old data into weekly summaries, `aggregateOldWeeks()` for monthly compression after 1 year, `exportToCSV()` and `exportToJSON()` functions for data export with timestamp and metadata, and `clearAllData()` for privacy compliance
 
 3. **Create statistics tracking hook** in new file [hooks/useStatsTracking.ts](hooks/useStatsTracking.ts) - Monitor presence changes from [usePresenceTracking](src/hooks/usePresenceTracking.ts), create new session on first presence detection, add presence/away intervals to current session tracking state changes, calculate break time from away intervals in real-time, handle midnight rollover by archiving current day and initializing new day, continue tracking in background (no tab visibility pause), use BroadcastChannel API for multi-tab leader election with heartbeat mechanism, and expose session data for UI consumption
 
@@ -22,7 +22,7 @@ Implement comprehensive daily statistics with D3.js-powered interactive timeline
 
 9. **Create historical statistics modal** in new file [components/StatsModal.tsx](components/StatsModal.tsx) - Build full-screen modal with tab navigation (Today/Week/Month/All-Time) using state management, display Today tab with detailed session list showing start/end times and durations, Week tab with WeeklyBarChart and aggregated totals, Month tab with 30-day overview and daily averages, All-Time tab with total hours tracked, days active, and average daily time, add CSV/JSON export buttons with privacy notice in footer ("Your data is stored locally in your browser only. It is encrypted and you can delete it anytime. Export creates a backup you control."), implement close button and ESC key handler, add dark backdrop overlay with click-outside-to-close, and include "Clear All Data" button with confirmation dialog
 
-10. **Create settings modal** in new file [components/SettingsModal.tsx](components/SettingsModal.tsx) - Build modal with sections for Goals (daily goal input 0.5-24 hours, weekly goal input 1-168 hours with validation), Notifications (toggle for break reminders, interval slider 30-240 minutes, permission status indicator), and Data Management (export buttons, clear data with confirmation), persist all settings to localStorage in `aideskwatch_config` key, provide "Reset to Defaults" button that restores initial values, add save/cancel actions with confirmation on unsaved changes, and show success/error toasts on save
+10. **Create settings modal** in new file [components/SettingsModal.tsx](components/SettingsModal.tsx) - Build modal with sections for Goals (daily goal input 0.5-24 hours, weekly goal input 1-168 hours with validation), Notifications (toggle for break reminders, interval slider 30-240 minutes, permission status indicator), and Data Management (export buttons, clear data with confirmation), persist all settings to localStorage in `commitspace_config` key, provide "Reset to Defaults" button that restores initial values, add save/cancel actions with confirmation on unsaved changes, and show success/error toasts on save
 
 11. **Create notification system hook** in new file [hooks/useNotifications.ts](hooks/useNotifications.ts) - Implement `requestNotificationPermission()` to check and request browser notification permissions with user-friendly prompts, create `checkBreakReminder()` that monitors continuous desk time and triggers notification when exceeding configured interval (default 120 minutes), use Notification API to show break reminders with title "Time for a break!", body text suggesting 5-10 minute break, icon/badge for branding, and click action to focus app tab, track last notification time to prevent spam (minimum 5 minutes between notifications), respect user's notification preferences from settings, and provide enable/disable toggle for notification system
 
@@ -142,7 +142,7 @@ These features are out of scope for V1 but architecture should accommodate futur
 
 ### Storage Strategy
 
-- Simple format: `aideskwatch_stats`
+- Simple format: `commitspace_stats`
 - All data in single localStorage key
 - Clean initialization for new users
 
@@ -221,7 +221,7 @@ These features are out of scope for V1 but architecture should accommodate futur
 
 - Encapsulates D3 lifecycle with useRef for SVG and selections
 - useEffect for initialization and cleanup
-- Zoom state persistence in localStorage (`aideskwatch_timeline_zoom`)
+- Zoom state persistence in localStorage (`commitspace_timeline_zoom`)
 - Zoom control functions (reset to 1x, zoom in by 2x, zoom out by 0.5x)
 - Tooltip DOM lifecycle management
 - Optimized re-renders with useMemo/useCallback

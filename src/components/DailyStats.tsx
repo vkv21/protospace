@@ -40,23 +40,23 @@ export const DailyStats = ({
 }: DailyStatsProps) => {
   // Persistent expand/collapse state for advanced panels
   const [showTimeline, setShowTimeline] = useState(() => {
-    return localStorage.getItem('aideskwatch_showTimeline') !== 'false';
+    return localStorage.getItem('commitspace_showTimeline') !== 'false';
   });
   const [showWeekly, setShowWeekly] = useState(() => {
-    return localStorage.getItem('aideskwatch_showWeekly') !== 'false';
+    return localStorage.getItem('commitspace_showWeekly') !== 'false';
   });
   const [showDebug, setShowDebug] = useState(() => {
-    return localStorage.getItem('aideskwatch_showDebug') === 'true';
+    return localStorage.getItem('commitspace_showDebug') === 'true';
   });
 
   useEffect(() => {
-    localStorage.setItem('aideskwatch_showTimeline', showTimeline.toString());
+    localStorage.setItem('commitspace_showTimeline', showTimeline.toString());
   }, [showTimeline]);
   useEffect(() => {
-    localStorage.setItem('aideskwatch_showWeekly', showWeekly.toString());
+    localStorage.setItem('commitspace_showWeekly', showWeekly.toString());
   }, [showWeekly]);
   useEffect(() => {
-    localStorage.setItem('aideskwatch_showDebug', showDebug.toString());
+    localStorage.setItem('commitspace_showDebug', showDebug.toString());
   }, [showDebug]);
   // All hooks MUST be called before any conditional returns
   const [isSessionExpanded, setIsSessionExpanded] = useState(false);

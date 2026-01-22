@@ -1,4 +1,4 @@
-# AI Desk Watch - Documentation Index
+# Commit Space - Documentation Index
 
 > **Last Updated:** 2026-01-21
 > **Version:** 2.0

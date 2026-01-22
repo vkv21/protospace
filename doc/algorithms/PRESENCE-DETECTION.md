@@ -9,7 +9,7 @@
 
 ## Overview
 
-The **Presence Detection Algorithm** is the core intelligence of AI Desk Watch that determines whether a user is actively sitting at their desk. It analyzes 33 pose landmarks from MediaPipe's pose detection model and applies a sophisticated scoring system to make reliable presence determinations while minimizing false positives/negatives.
+The **Presence Detection Algorithm** is the core intelligence of Commit Space that determines whether a user is actively sitting at their desk. It analyzes 33 pose landmarks from MediaPipe's pose detection model and applies a sophisticated scoring system to make reliable presence determinations while minimizing false positives/negatives.
 
 **Purpose:** Convert raw pose landmarks into a binary presence decision with confidence scoring.
 

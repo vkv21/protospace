@@ -282,16 +282,16 @@ Returns pretty-printed JSON string
 #### `clearAllData(): void`
 ```typescript
 // Clears all localStorage keys:
-- aideskwatch_stats
-- aideskwatch_config  
+- commitspace_stats
+- commitspace_config  
 ```
 
 ### Storage Keys
 
 ```typescript
 STORAGE_KEYS = {
-  STATS: 'aideskwatch_stats',
-  CONFIG: 'aideskwatch_config'
+  STATS: 'commitspace_stats',
+  CONFIG: 'commitspace_config'
 }
 ```
 

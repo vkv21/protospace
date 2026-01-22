@@ -1,10 +1,10 @@
-# AI Agent Instructions for AIDeskWatch FE
+# AI Agent Instructions for CommitSpace FE
 
 This document provides instructions for an AI agent working on this codebase.
 
 ## 1. Project Overview
 
-This is the frontend for **AIDeskWatch**, a web application designed to automatically track a user's desk time and break time. It uses **local camera-based pose detection** via MediaPipe to monitor when the user is "at desk" versus "away" and provides real-time statistics and historical data.
+This is the frontend for **CommitSpace**, a web application designed to automatically track a user's desk time and break time. It uses **local camera-based pose detection** via MediaPipe to monitor when the user is "at desk" versus "away" and provides real-time statistics and historical data.
 
 **Core Functionality:**
 
@@ -104,4 +104,4 @@ Use the following `npm` scripts for development and verification:
 - Detailed session data: 7 days
 - Weekly aggregates: 52 weeks
 - Monthly aggregates: 24 months
-- All data stored in `localStorage` under `aideskwatch_stats` key.
+- All data stored in `localStorage` under `commitspace_stats` key.

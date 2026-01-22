@@ -22,7 +22,7 @@ interface UseD3TimelineReturn {
 }
 
 const DEFAULT_MARGINS = { top: 20, right: 20, bottom: 40, left: 50 };
-const ZOOM_STORAGE_KEY = 'aideskwatch_timeline_zoom';
+const ZOOM_STORAGE_KEY = 'commitspace_timeline_zoom';
 
 export const useD3Timeline = ({
   width,

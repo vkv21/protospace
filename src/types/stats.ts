@@ -110,8 +110,8 @@ export const DEFAULT_NOTIFICATIONS: NotificationPreferences = {
 
 // Storage keys
 export const STORAGE_KEYS = {
-  STATS: 'aideskwatch_stats',
-  CONFIG: 'aideskwatch_config',
+  STATS: 'commitspace_stats',
+  CONFIG: 'commitspace_config',
 } as const;
 
 // Retention policy

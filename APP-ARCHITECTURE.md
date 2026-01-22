@@ -1,6 +1,6 @@
-# AIDeskWatch Application Architecture
+# CommitSpace Application Architecture
 
-This document provides a comprehensive overview of the AIDeskWatch frontend application architecture, data flow, and component responsibilities.
+This document provides a comprehensive overview of the CommitSpace frontend application architecture, data flow, and component responsibilities.
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@ This document provides a comprehensive overview of the AIDeskWatch frontend appl
 
 ## Application Overview
 
-AIDeskWatch is a **privacy-first, client-side web application** that tracks user desk time using local camera-based pose detection. All processing happens in the browser using MediaPipe, with no data sent to any server.
+CommitSpace is a **privacy-first, client-side web application** that tracks user desk time using local camera-based pose detection. All processing happens in the browser using MediaPipe, with no data sent to any server.
 
 **Key Features:**
 
@@ -126,9 +126,9 @@ AIDeskWatch is a **privacy-first, client-side web application** that tracks user
 │  └─ clearAllData() - Reset all statistics                                        │
 │                                                                                  │
 │  Storage Keys:                                                                   │
-│  ├─ aideskwatch_stats (main statistics data)                                     │
-│  ├─ aideskwatch_config (user settings)                                           │
-│  └─ aideskwatch_dark_mode (theme preference)                                     │
+│  ├─ commitspace_stats (main statistics data)                                     │
+│  ├─ commitspace_config (user settings)                                           │
+│  └─ commitspace_dark_mode (theme preference)                                     │
 │                                                                                  │
 └─────────────────────────────────────────────────────────────────────────────────┘
                                         ↓
@@ -250,7 +250,7 @@ Tab opens
   ↓
 useStatsTracking initializes
   ↓
-BroadcastChannel created ('aideskwatch_tracking')
+BroadcastChannel created ('commitspace_tracking')
   ↓
 Send heartbeat every 2 seconds
   ↓
@@ -345,7 +345,7 @@ App
 
 ### Data Structure in localStorage
 
-**Key: `aideskwatch_stats`**
+**Key: `commitspace_stats`**
 
 ```typescript
 {

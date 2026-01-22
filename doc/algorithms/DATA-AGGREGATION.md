@@ -758,7 +758,7 @@ localStorage.setItem(key, compressed);
 
 ```typescript
 // Use IndexedDB for unlimited storage
-const db = await openDB('aideskwatch', 1, {
+const db = await openDB('commitspace', 1, {
   upgrade(db) {
     db.createObjectStore('sessions');
     db.createObjectStore('aggregates');

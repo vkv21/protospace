@@ -60,7 +60,7 @@ export const StatsModal = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `aideskwatch-export-${
+    a.download = `commitspace-export-${
       new Date().toISOString().split('T')[0]
     }.csv`;
     a.click();
@@ -73,7 +73,7 @@ export const StatsModal = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `aideskwatch-export-${
+    a.download = `commitspace-export-${
       new Date().toISOString().split('T')[0]
     }.json`;
     a.click();

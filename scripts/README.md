@@ -103,7 +103,7 @@ This command:
 
 ╭────────────────────────────────────────────╮
 │   Repository Information                   │
-│   📦 Name: vkv21/deskwatcher-fe            │
+│   📦 Name: vkv21/commitspace-fe            │
 │   🔗 Remote: github.com/...                │
 │   🌿 Branch: presence-detect               │
 ╰────────────────────────────────────────────╯

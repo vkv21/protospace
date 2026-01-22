@@ -301,8 +301,8 @@ interface StatsData {
 
 ```typescript
 {
-  STATS: 'aideskwatch_stats',
-  CONFIG: 'aideskwatch_config'
+  STATS: 'commitspace_stats',
+  CONFIG: 'commitspace_config'
 }
 ```
 

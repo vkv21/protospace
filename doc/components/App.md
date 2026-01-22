@@ -39,12 +39,11 @@ Top-level React component that provides global layout structure, dark mode toggl
 ```typescript
 // Load from localStorage on mount
 const [darkMode, setDarkMode] = useState(() => {
-  return localStorage.getItem('aideskwatch_dark_mode') === 'true';
+  return localStorage.getItem('commitspace_dark_mode') === 'true';
 });
 
-// Persist and apply CSS class
 useEffect(() => {
-  localStorage.setItem('aideskwatch_dark_mode', darkMode.toString());
+  localStorage.setItem('commitspace_dark_mode', darkMode.toString());
   if (darkMode) {
     document.documentElement.classList.add('dark');  // Tailwind dark mode
   } else {
@@ -55,7 +54,7 @@ useEffect(() => {
 
 ### Header Structure
 - **Logo:** Gradient blue-to-purple eye icon
-- **Title:** "AI Desk Watch" with gradient text
+- **Title:** "Commit Space" with gradient text
 - **Toggle:** Sun/moon icon button
 
 ### Layout
@@ -137,7 +136,7 @@ Dark: gray-950 → gray-900 → gray-950
 
 ## Quick Reference
 
-**localStorage Key:** `aideskwatch_dark_mode`
+**localStorage Key:** `commitspace_dark_mode`
 
 **Tailwind Dark Mode:** Applied via `.dark` class on `<html>` element
 

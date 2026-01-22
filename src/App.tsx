@@ -6,13 +6,13 @@ function App() {
   // Dark mode state with localStorage persistence
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('aideskwatch_dark_mode') === 'true';
+      return localStorage.getItem('commitspace_dark_mode') === 'true';
     }
     return false;
   });
 
   useEffect(() => {
-    localStorage.setItem('aideskwatch_dark_mode', darkMode.toString());
+    localStorage.setItem('commitspace_dark_mode', darkMode.toString());
     if (darkMode) {
       document.documentElement.classList.add('dark');
     } else {

@@ -18,8 +18,8 @@ export interface UsePresenceTrackingOptions {
   hysteresisFrames?: number; // Number of consecutive frames needed to change state (default: 2)
 }
 
-const STORAGE_KEY = 'aideskwatch_presence';
-const STORAGE_DATE_KEY = 'aideskwatch_last_date';
+const STORAGE_KEY = 'commitspace_presence';
+const STORAGE_DATE_KEY = 'commitspace_last_date';
 
 interface StoredPresenceData {
   deskTime: number;

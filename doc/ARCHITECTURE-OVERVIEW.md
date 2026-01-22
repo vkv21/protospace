@@ -9,7 +9,7 @@
 
 ## Purpose
 
-AI Desk Watch is a privacy-first desk time tracking application that uses client-side AI pose detection to determine user presence. This document provides a high-level overview of the system architecture, design decisions, and data flow.
+Commit Space is a privacy-first desk time tracking application that uses client-side AI pose detection to determine user presence. This document provides a high-level overview of the system architecture, design decisions, and data flow.
 
 ## System Overview
 
@@ -235,7 +235,7 @@ Tab 1 Closes:
 ## State Management Strategy
 
 ### Global State (App-Level)
-- **Dark Mode** - Stored in App.tsx, persisted to `aideskwatch_dark_mode`
+- **Dark Mode** - Stored in App.tsx, persisted to `commitspace_dark_mode`
 
 ### Component State (Local UI)
 - Modal open/closed states
@@ -250,8 +250,8 @@ Tab 1 Closes:
 - Notification state
 
 ### Persisted State (localStorage)
-- Statistics data (`aideskwatch_stats`)
-- User settings (`aideskwatch_config`)
+- Statistics data (`commitspace_stats`)
+- User settings (`commitspace_config`)
 - UI preferences (panel states, dev mode, etc.)
 
 **No Redux/Context:** Application uses hooks and local state for simplicity.

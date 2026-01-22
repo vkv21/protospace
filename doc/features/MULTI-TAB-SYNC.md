@@ -9,7 +9,7 @@
 
 ## Overview
 
-**Multi-Tab Sync** enables seamless coordination when AI Desk Watch is open in multiple browser tabs simultaneously. It prevents data conflicts, eliminates duplicate tracking, and ensures statistics remain consistent across all tabs through automatic leader election and shared storage.
+**Multi-Tab Sync** enables seamless coordination when Commit Space is open in multiple browser tabs simultaneously. It prevents data conflicts, eliminates duplicate tracking, and ensures statistics remain consistent across all tabs through automatic leader election and shared storage.
 
 **User Benefit:** Open the app in multiple tabs/windows without conflicts—stats always accurate, no duplicate sessions.
 
@@ -22,7 +22,7 @@
 ### Without Multi-Tab Sync
 
 ```
-User opens 3 tabs of AI Desk Watch:
+User opens 3 tabs of Commit Space:
 
 Tab A: Creates Session_001, writes stats every 5s
 Tab B: Creates Session_002, writes stats every 5s  ← Duplicate!
@@ -44,7 +44,7 @@ Result: Data corruption, excessive resource usage
 ### With Multi-Tab Sync
 
 ```
-User opens 3 tabs of AI Desk Watch:
+User opens 3 tabs of Commit Space:
 
 Tab A: LEADER   → Tracks presence, creates sessions
 Tab B: FOLLOWER → Reads stats from localStorage, displays only
@@ -87,7 +87,7 @@ Result: Perfect coordination, minimal resource usage
 │                            │                               │
 │        ┌───────────────────▼──────────────┐               │
 │        │    BroadcastChannel              │               │
-│        │    ('aideskwatch_tracking')      │               │
+│        │    ('commitspace_tracking')      │               │
 │        │                                   │               │
 │        │  Messages:                        │               │
 │        │  - HELLO (new tab announces)      │               │
@@ -203,7 +203,7 @@ useEffect(() => {
 useEffect(() => {
   try {
     // Create channel for inter-tab communication
-    const channel = new BroadcastChannel('aideskwatch_tracking');
+    const channel = new BroadcastChannel('commitspace_tracking');
     channelRef.current = channel;
 
     // Message handler
@@ -275,7 +275,7 @@ useEffect(() => {
 ```typescript
 // All tabs read from same localStorage key
 const STORAGE_KEYS = {
-  STATS: 'aideskwatch_stats',
+  STATS: 'commitspace_stats',
 };
 
 // Leader writes
@@ -435,7 +435,7 @@ T=500ms:  Both become leaders (SPLIT BRAIN!)
 
 ### 2. Browser Throttles Background Tabs
 
-**Scenario:** User switches away from all AI Desk Watch tabs
+**Scenario:** User switches away from all Commit Space tabs
 
 ```
 Tab A (Leader, now background):

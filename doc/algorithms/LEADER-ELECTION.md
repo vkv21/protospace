@@ -9,7 +9,7 @@
 
 ## Overview
 
-The **Leader Election Protocol** is a distributed coordination mechanism that ensures only ONE browser tab tracks presence and writes statistics at any time, even when multiple tabs of AI Desk Watch are open simultaneously. This prevents race conditions, duplicate session creation, and localStorage conflicts.
+The **Leader Election Protocol** is a distributed coordination mechanism that ensures only ONE browser tab tracks presence and writes statistics at any time, even when multiple tabs of Commit Space are open simultaneously. This prevents race conditions, duplicate session creation, and localStorage conflicts.
 
 **Purpose:** Designate a single "leader" tab responsible for tracking, while other "follower" tabs remain passive.
 
@@ -21,7 +21,7 @@ The **Leader Election Protocol** is a distributed coordination mechanism that en
 
 ### Multi-Tab Conflicts Without Coordination
 
-**Scenario:** User opens AI Desk Watch in 3 browser tabs
+**Scenario:** User opens Commit Space in 3 browser tabs
 
 **Without leader election:**
 1. **All 3 tabs** run presence detection simultaneously
@@ -93,7 +93,7 @@ isLeaderRef.current = false;
 
 ```typescript
 // Create BroadcastChannel for inter-tab communication
-const channel = new BroadcastChannel('aideskwatch_tracking');
+const channel = new BroadcastChannel('commitspace_tracking');
 
 // 1. Announce arrival to existing tabs
 channel.postMessage({ 
@@ -290,7 +290,7 @@ if (otherTabId < myTabId && bothLeaders) {
 
 ```typescript
 try {
-  const channel = new BroadcastChannel('aideskwatch_tracking');
+  const channel = new BroadcastChannel('commitspace_tracking');
   // ...
 } catch (error) {
   // Fallback: All tabs become leaders (Safari < 15.4)
@@ -412,12 +412,12 @@ describe('Leader election', () => {
 ### Manual Testing
 
 **Test 1: Single Tab**
-1. Open AI Desk Watch
+1. Open Commit Space
 2. Check console: "Became leader tab" after 500ms
 3. Verify tracking is active (session created)
 
 **Test 2: Multiple Tabs**
-1. Open AI Desk Watch in Tab A
+1. Open Commit Space in Tab A
 2. Wait 1 second (A becomes leader)
 3. Open Tab B
 4. Check Tab B console: No "Became leader" message

@@ -9,7 +9,7 @@
 
 ## Overview
 
-The **Hysteresis Filter** is a signal processing pattern that prevents rapid state oscillation (flicker) by requiring multiple consecutive measurements before changing state. In AI Desk Watch, it smooths the presence detection output to avoid tracking errors caused by brief occlusions or detection noise.
+The **Hysteresis Filter** is a signal processing pattern that prevents rapid state oscillation (flicker) by requiring multiple consecutive measurements before changing state. In Commit Space, it smooths the presence detection output to avoid tracking errors caused by brief occlusions or detection noise.
 
 **Purpose:** Convert noisy presence detection signals into stable, reliable presence states.
 

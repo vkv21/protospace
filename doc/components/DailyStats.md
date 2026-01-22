@@ -48,13 +48,11 @@ Primary statistics display component. Shows today's desk time, break time, sessi
 ```typescript
 // Persistent collapse states
 const [showTimeline, setShowTimeline] = useState(() => {
-  return localStorage.getItem('aideskwatch_showTimeline') !== 'false';
+  return localStorage.getItem('commitspace_showTimeline') !== 'false';
 });
-// Similar for showWeekly, showDebug
 
-// Persist on change
 useEffect(() => {
-  localStorage.setItem('aideskwatch_showTimeline', showTimeline.toString());
+  localStorage.setItem('commitspace_showTimeline', showTimeline.toString());
 }, [showTimeline]);
 ```
 
@@ -206,9 +204,9 @@ If goalProgress >= 100:
 
 ## localStorage Keys
 
-- `aideskwatch_showTimeline` - Timeline panel state
-- `aideskwatch_showWeekly` - Weekly chart panel state
-- `aideskwatch_showDebug` - Debug panel state
+- `commitspace_showTimeline` - Timeline panel state
+- `commitspace_showWeekly` - Weekly chart panel state
+- `commitspace_showDebug` - Debug panel state
 
 ---
 

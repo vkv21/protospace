@@ -72,10 +72,10 @@ describe('usePresenceTracking', () => {
     const today = new Date().toDateString();
 
     localStorage.setItem(
-      'aideskwatch_presence',
+      'commitspace_presence',
       JSON.stringify({ deskTime: mockDeskTime, date: today })
     );
-    localStorage.setItem('aideskwatch_last_date', today);
+    localStorage.setItem('commitspace_last_date', today);
 
     const { result } = renderHook(() => usePresenceTracking(null));
 
@@ -87,10 +87,10 @@ describe('usePresenceTracking', () => {
     const yesterday = new Date(Date.now() - 86400000).toDateString();
 
     localStorage.setItem(
-      'aideskwatch_presence',
+      'commitspace_presence',
       JSON.stringify({ deskTime: mockDeskTime, date: yesterday })
     );
-    localStorage.setItem('aideskwatch_last_date', yesterday);
+    localStorage.setItem('commitspace_last_date', yesterday);
 
     const { result } = renderHook(() => usePresenceTracking(null));
 
@@ -99,7 +99,7 @@ describe('usePresenceTracking', () => {
   });
 
   it('should handle corrupted localStorage data gracefully', () => {
-    localStorage.setItem('aideskwatch_presence', 'invalid{json}');
+    localStorage.setItem('commitspace_presence', 'invalid{json}');
 
     const { result } = renderHook(() => usePresenceTracking(null));
 

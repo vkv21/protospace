@@ -34,7 +34,7 @@
 
 4. **Data Persistence**
 
-   - localStorage key: `aideskwatch_stats`
+   - localStorage key: `commitspace_stats`
    - Midnight rollover: Archives previous day, starts new day
    - Retention: 7 days detailed, 52 weeks aggregated, 24 months
 
@@ -60,7 +60,7 @@
   - "Presence Detected" shows as "Yes"
   - "Active Session" indicator appears (blue pulse)
   - "At Desk" time starts incrementing
-   - localStorage `aideskwatch_stats` key appears
+   - localStorage `commitspace_stats` key appears
 - [ ] Wait 10 seconds
 - [ ] **Expected**: Sessions count = 1
 - [ ] Leave frame completely
@@ -83,7 +83,7 @@
 **Goal**: Verify data survives page refresh
 
 - [ ] With active tracking session, note current "At Desk" time
-- [ ] Open DevTools → Application → Local Storage → `aideskwatch_stats`
+- [ ] Open DevTools → Application → Local Storage → `commitspace_stats`
 - [ ] Copy value to text editor for inspection
 - [ ] Refresh page (F5 or Cmd+R)
 - [ ] Click "Start Camera" again
@@ -208,7 +208,7 @@
 1. Clear localStorage (`localStorage.clear()` in console)
 2. Refresh page
 
-- [ ] Check localStorage for `aideskwatch_stats` key
+- [ ] Check localStorage for `commitspace_stats` key
 - [ ] **Expected**:
   - New stats structure is created
   - Shows 0 hours for today
@@ -320,7 +320,7 @@ Run coverage: `npm run test:coverage`
 
 **Test expects**: `stats.settings.notifications.breakReminderEnabled`
 **Actual**: `stats.settings.breakReminderEnabled` (flat structure)
-**Fix**: Align types/stats.ts with statsStorage.ts
+**Fix**: Align src/types/stats.ts with src/utils/statsStorage.ts
 
 ---
 

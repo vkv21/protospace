@@ -105,7 +105,7 @@ On hover:
 
 ### Zoom Persistence
 ```
-localStorage key: 'aideskwatch_timeline_zoom'
+localStorage key: 'commitspace_timeline_zoom'
 Saved value: current zoom scale (1-24)
 Restored on mount
 ```

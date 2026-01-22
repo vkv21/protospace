@@ -124,7 +124,7 @@ describe('useStatsTracking', () => {
   });
 
   it('should handle corrupted localStorage gracefully', () => {
-    localStorage.setItem('aideskwatch_stats', 'invalid{json}');
+    localStorage.setItem('commitspace_stats', 'invalid{json}');
 
     const { result } = renderHook(() =>
       useStatsTracking({ isPresent: false, lastSeen: null })

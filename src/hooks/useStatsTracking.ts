@@ -320,7 +320,7 @@ export const useStatsTracking = (
   // Multi-tab coordination with BroadcastChannel
   useEffect(() => {
     try {
-      const channel = new BroadcastChannel('aideskwatch_tracking');
+      const channel = new BroadcastChannel('commitspace_tracking');
       channelRef.current = channel;
 
       // Message handler

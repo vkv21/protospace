@@ -1,4 +1,4 @@
-# AI Desk Watch - Complete Documentation
+# Commit Space - Complete Documentation
 
 > **Generated:** 2026-01-21
 > **Version:** 2.0
@@ -8,7 +8,7 @@
 
 ## 📚 Documentation Complete!
 
-This documentation set provides comprehensive coverage of the entire AI Desk Watch codebase. Perfect for:
+This documentation set provides comprehensive coverage of the entire Commit Space codebase. Perfect for:
 - New developers getting up to speed
 - Returning developers refreshing their knowledge
 - Code reviews and maintenance
@@ -79,7 +79,7 @@ doc/
 ### Option 2: Use with Obsidian (Recommended)
 
 1. **Open Obsidian** → "Open folder as vault"
-2. **Select:** `/path/to/aideskwatch/fe/doc/` folder
+2. **Select:** `/path/to/commitspace/fe/doc/` folder
 3. **Navigate:** Click any `[[wiki-link]]` to jump between documents
 4. **Search:** Use Obsidian's search (Cmd/Ctrl + O) to find topics
 5. **Graph view:** Visualize document relationships
@@ -448,4 +448,4 @@ For new hooks/components/utilities:
 
 ---
 
-**Welcome to AI Desk Watch! Start with [[INDEX|INDEX.md]] for navigation.**
+**Welcome to Commit Space! Start with [[INDEX|INDEX.md]] for navigation.**

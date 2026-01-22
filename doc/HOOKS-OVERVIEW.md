@@ -8,7 +8,7 @@
 
 ## All Hooks Summary
 
-AI Desk Watch uses **7 custom React hooks** to encapsulate complex logic. Hooks follow a clear dependency chain from camera → AI → presence → tracking.
+Commit Space uses **7 custom React hooks** to encapsulate complex logic. Hooks follow a clear dependency chain from camera → AI → presence → tracking.
 
 ## Hook Dependency Graph
 
@@ -104,8 +104,8 @@ Each hook manages its own state using `useState`, `useRef`, `useEffect`.
 - **Domain logic** - Hook-level (presence, tracking)
 
 ### Persistence
-- **useStatsTracking** - `aideskwatch_stats`
-- **useD3Timeline** - `aideskwatch_timeline_zoom`
+- **useStatsTracking** - `commitspace_stats`
+- **useD3Timeline** - `commitspace_timeline_zoom`
 
 ## Common Patterns
 

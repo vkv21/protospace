@@ -78,7 +78,7 @@ Check every minute:
 ## 6. External Dependencies
 
 - [[utils/presenceAnalyzer|presenceAnalyzer]] - `analyzePoseLandmarks()`
-- localStorage - Persistence (keys: `aideskwatch_presence`, `aideskwatch_last_date`)
+- localStorage - Persistence (keys: `commitspace_presence`, `commitspace_last_date`)
 - `@mediapipe/tasks-vision` - NormalizedLandmark type
 
 ## 7. Integration Points

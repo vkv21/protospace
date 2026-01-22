@@ -20,13 +20,13 @@ export const VideoCapture = () => {
 
   // Dev mode state with localStorage persistence
   const [devMode, setDevMode] = useState(() => {
-    const stored = localStorage.getItem('aideskwatch_dev_mode');
+    const stored = localStorage.getItem('commitspace_dev_mode');
     return stored === 'true';
   });
 
   // Self view state with localStorage persistence
   const [selfViewEnabled, setSelfViewEnabled] = useState(() => {
-    const stored = localStorage.getItem('aideskwatch_self_view');
+    const stored = localStorage.getItem('commitspace_self_view');
     return stored !== 'false'; // Default to true
   });
 
@@ -37,12 +37,12 @@ export const VideoCapture = () => {
 
   // Persist dev mode to localStorage
   useEffect(() => {
-    localStorage.setItem('aideskwatch_dev_mode', devMode.toString());
+    localStorage.setItem('commitspace_dev_mode', devMode.toString());
   }, [devMode]);
 
   // Persist self view preference to localStorage
   useEffect(() => {
-    localStorage.setItem('aideskwatch_self_view', selfViewEnabled.toString());
+    localStorage.setItem('commitspace_self_view', selfViewEnabled.toString());
   }, [selfViewEnabled]);
 
   const { videoRef, isCapturing, error, startCapture, stopCapture } =

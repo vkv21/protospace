@@ -146,8 +146,8 @@ Camera Start → Loading → Pose Detection → Presence Status → Session Star
 ### Persistent UI Preferences
 ```typescript
 // localStorage keys:
-- 'aideskwatch_dev_mode' → devMode state
-- 'aideskwatch_self_view' → selfViewEnabled state
+- 'commitspace_dev_mode' → devMode state
+- 'commitspace_self_view' → selfViewEnabled state
 ```
 
 ### Self-View Toggle

@@ -59,7 +59,7 @@ describe('statsStorage', () => {
         },
       };
 
-      localStorage.setItem('aideskwatch_stats', JSON.stringify(mockStats));
+      localStorage.setItem('commitspace_stats', JSON.stringify(mockStats));
 
       const stats = loadOrInitializeStats();
 
@@ -67,7 +67,7 @@ describe('statsStorage', () => {
     });
 
     it('should handle corrupted JSON gracefully', () => {
-      localStorage.setItem('aideskwatch_stats', 'invalid{json}');
+      localStorage.setItem('commitspace_stats', 'invalid{json}');
 
       const stats = loadOrInitializeStats();
 
@@ -89,7 +89,7 @@ describe('statsStorage', () => {
 
       saveStats(stats);
 
-      const saved = localStorage.getItem('aideskwatch_stats');
+      const saved = localStorage.getItem('commitspace_stats');
       expect(saved).toBeTruthy();
 
       const parsed = JSON.parse(saved!);

@@ -90,7 +90,7 @@ On isPresent change:
 
 ```
 Tab Opens:
-1. Create BroadcastChannel('aideskwatch_tracking')
+1. Create BroadcastChannel('commitspace_tracking')
 2. Send "HELLO" message
 3. Start 500ms timeout
 4. If another tab sends "I_AM_LEADER" → become follower
