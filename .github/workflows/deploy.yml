@@ -52,7 +52,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.SSH_PRIVATEKEY }}
           source: 'commitspace-latest.tar.gz'
           target: '/home/ec2-user/'
 
@@ -61,7 +61,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.SSH_PRIVATEKEY }}
           script: |
             cd /home/ec2-user
 
