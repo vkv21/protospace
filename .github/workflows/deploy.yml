@@ -17,8 +17,9 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }} # ensures environment secrets are available
-
+    env:
+      DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'production' }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'production' }}
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -53,7 +54,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATEKEY }}
+          key: ${{ secrets.SSH_PRIVATEKEY }} # or EC2_SSH_KEY if you rename
           source: 'commitspace-latest.tar.gz'
           target: '/home/ec2-user/'
 
