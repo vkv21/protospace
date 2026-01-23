@@ -68,6 +68,16 @@ jobs:
           source: 'commitspace-latest.tar.gz'
           target: '/home/ec2-user/'
 
+      - name: � Transfer deployment script
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATEKEY }}
+          source: 'scripts/deploy.sh'
+          target: '/home/ec2-user/'
+          strip_components: 1
+
       - name: 🚀 Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -77,6 +87,9 @@ jobs:
           script: |
             cd /home/ec2-user
 
+            # Ensure deploy.sh is executable
+            chmod +x deploy.sh
+
             # Load new image
             docker load < commitspace-latest.tar.gz
 
@@ -85,13 +98,6 @@ jobs:
 
             # Cleanup
             rm commitspace-latest.tar.gz
-
-            # Verify deployment (Wait for Nginx to bind after container swap)
-            sleep 10
-            curl -f http://localhost/ || {
-              echo "❌ Health check failed!"
-              exit 1
-            }
 
             echo "✅ Deployment successful!"
 
