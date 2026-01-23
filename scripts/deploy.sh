@@ -193,7 +193,7 @@ else
     # Wait for container to be healthy (especially important for initial SSL acquisition)
     if [ "$CERT_EXISTS" = false ]; then
         echo "⏳ Waiting for SSL certificate acquisition (can take up to 60s)..."
-        sleep 10
+        sleep 70 # Initial wait for Certbot to complete 
         
         # Check container logs for any errors
         if ! docker ps -q -f name="^${CONTAINER_NAME}$" > /dev/null; then
