@@ -15,47 +15,6 @@ echo "📁 Certificate path: $CERT_PATH"
 echo "🕐 Timestamp: $(date)"
 echo "════════════════════════════════════════════════════════════"
 
-# Check if running locally (localhost/127.0.0.1)
-if [ "$DOMAIN" = "localhost" ] || [ "$DOMAIN" = "127.0.0.1" ]; then
-    echo "⚠️  Running in LOCAL MODE (HTTP only, no SSL)"
-    
-    # Use simple HTTP-only nginx config for local testing
-    cat > /etc/nginx/nginx.conf <<'EOF'
-user nginx;
-worker_processes auto;
-error_log /var/log/nginx/error.log warn;
-pid /var/run/nginx.pid;
-
-events {
-    worker_connections 1024;
-}
-
-http {
-    include /etc/nginx/mime.types;
-    default_type application/octet-stream;
-    
-    sendfile on;
-    keepalive_timeout 65;
-    
-    gzip on;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml;
-    
-    server {
-        listen 80;
-        root /usr/share/nginx/html;
-        index index.html;
-        
-        location / {
-            try_files $uri $uri/ /index.html;
-        }
-    }
-}
-EOF
-    
-    echo "✅ Local HTTP-only configuration applied"
-    echo "🌐 Starting Nginx web server..."
-    exec nginx -g 'daemon off;'
-fi
 
 # Production mode with SSL
 echo ""

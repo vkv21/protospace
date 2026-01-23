@@ -62,12 +62,26 @@ if docker ps -q -f name="^${CONTAINER_NAME}$" > /dev/null; then
         --env-file /home/ec2-user/docker.env \
         "$IMAGE_NAME"
     
-    echo "⏳ Waiting for new container to be healthy..."
-    sleep 10
+    echo "⏳ Waiting for new container to be healthy (can take up to 60s for SSL)..."
+    
+    # Improved health check loop
+    MAX_RETRIES=12
+    COUNT=0
+    HEALTHY=false
+    while [ $COUNT -lt $MAX_RETRIES ]; do
+        if curl -f http://localhost:8080/ > /dev/null 2>&1; then
+            echo -e "${GREEN}✅ New container is healthy${NC}"
+            HEALTHY=true
+            break
+        fi
+        echo "   Waiting for new container to be ready... ($((COUNT+1))/$MAX_RETRIES)"
+        sleep 5
+        COUNT=$((COUNT+1))
+    done
     
     # Health check new container
-    if curl -f http://localhost:8080/ > /dev/null 2>&1; then
-        echo -e "${GREEN}✅ New container is healthy${NC}"
+    if [ "$HEALTHY" = true ]; then
+        echo -e "${GREEN}✅ Proceeding with swap...${NC}"
         
         # Stop old container
         echo "🛑 Stopping old container..."

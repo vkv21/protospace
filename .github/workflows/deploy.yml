@@ -40,7 +40,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
-          platforms: arm64  # Explicitly set
+          platforms: arm64 # Explicitly set
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -86,8 +86,8 @@ jobs:
             # Cleanup
             rm commitspace-latest.tar.gz
 
-            # Verify deployment
-            sleep 5
+            # Verify deployment (Wait for Nginx to bind after container swap)
+            sleep 10
             curl -f http://localhost/ || {
               echo "❌ Health check failed!"
               exit 1
