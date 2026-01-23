@@ -59,8 +59,14 @@ export const VideoCapture = () => {
   });
 
   // Presence tracking based on pose landmarks
-  const { isPresent, confidence, lastSeen, deskTime, currentActivity, activityConfidence } =
-    usePresenceTracking(landmarks);
+  const {
+    isPresent,
+    confidence,
+    lastSeen,
+    deskTime,
+    currentActivity,
+    activityConfidence,
+  } = usePresenceTracking(landmarks);
 
   // Stats tracking with sessions
   const {
@@ -111,9 +117,9 @@ export const VideoCapture = () => {
   });
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 border-2 border-green-200 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Left Column - Video & Controls */}
-      <div className="border-2 border-green-400 lg:col-span-2 space-y-6">
+      <div className=" lg:col-span-2 space-y-6">
         {/* Video Card */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
           <div className="p-6">
@@ -277,7 +283,7 @@ export const VideoCapture = () => {
             {/* Session Timer - shows when session active, independent of camera */}
             {isTracking && currentSession && (
               <div className="mt-4">
-                <SessionTimer 
+                <SessionTimer
                   elapsedSeconds={elapsedSeconds}
                   isVisible={isTracking}
                 />
@@ -569,25 +575,33 @@ export const VideoCapture = () => {
                     </div>
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">isTracking:</span>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          isTracking:
+                        </span>
                         <span className="font-mono text-gray-900 dark:text-gray-100">
                           {isTracking ? '✅ true' : '❌ false'}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">currentActivity:</span>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          currentActivity:
+                        </span>
                         <span className="font-mono text-gray-900 dark:text-gray-100">
                           {currentActivity || 'null'}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">activityConfidence:</span>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          activityConfidence:
+                        </span>
                         <span className="font-mono text-gray-900 dark:text-gray-100">
                           {Math.round((activityConfidence || 0) * 100)}%
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">isPresent:</span>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          isPresent:
+                        </span>
                         <span className="font-mono text-gray-900 dark:text-gray-100">
                           {isPresent ? '✅ true' : '❌ false'}
                         </span>
@@ -685,21 +699,24 @@ export const VideoCapture = () => {
                 </div>
 
                 {/* Current Activity (when tracking) */}
-                {isTracking && currentActivity && currentActivity !== 'away' && (
-                  <div className="flex items-center justify-between py-2 mt-3 pt-3 border-t border-gray-300 dark:border-gray-600">
-                    <span className="text-gray-700 dark:text-gray-300 font-medium">
-                      Current Activity:
-                    </span>
-                    <div className="text-right">
-                      <div className="text-gray-900 dark:text-gray-100 font-bold text-base flex items-center gap-2 justify-end">
-                        <span>{currentActivity}</span>
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {Math.round((activityConfidence || 0) * 100)}% confident
+                {isTracking &&
+                  currentActivity &&
+                  currentActivity !== 'away' && (
+                    <div className="flex items-center justify-between py-2 mt-3 pt-3 border-t border-gray-300 dark:border-gray-600">
+                      <span className="text-gray-700 dark:text-gray-300 font-medium">
+                        Current Activity:
+                      </span>
+                      <div className="text-right">
+                        <div className="text-gray-900 dark:text-gray-100 font-bold text-base flex items-center gap-2 justify-end">
+                          <span>{currentActivity}</span>
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {Math.round((activityConfidence || 0) * 100)}%
+                          confident
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
             </div>
           </div>
