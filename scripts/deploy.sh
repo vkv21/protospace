@@ -48,9 +48,48 @@ CONTAINER_NAME="commitspace-frontend"
 IMAGE_NAME="commitspace:latest"
 NEW_CONTAINER="${CONTAINER_NAME}-new"
 
+# ============================================================
+# CERTIFICATE EXISTENCE CHECK
+# ============================================================
+echo -e "${GREEN}🔍 Checking SSL certificate status...${NC}"
+
+# Extract domain from docker.env
+DOMAIN=$(grep "^DOMAIN=" /home/ec2-user/docker.env | cut -d= -f2)
+CERT_PATH="/home/ec2-user/letsencrypt/live/$DOMAIN/fullchain.pem"
+
+CERT_EXISTS=false
+if [ -f "$CERT_PATH" ]; then
+    CERT_EXISTS=true
+    echo -e "${GREEN}✅ SSL certificates found for $DOMAIN${NC}"
+    
+    # Check certificate validity
+    if openssl x509 -checkend 2592000 -noout -in "$CERT_PATH" 2>/dev/null; then
+        CERT_EXPIRY=$(openssl x509 -enddate -noout -in "$CERT_PATH" | cut -d= -f2)
+        echo "   📅 Certificate valid until: $CERT_EXPIRY"
+    else
+        echo -e "${YELLOW}   ⚠️  Certificate expires in less than 30 days${NC}"
+    fi
+else
+    echo -e "${YELLOW}⚠️  No SSL certificates found for $DOMAIN${NC}"
+    echo "   Initial certificate acquisition will require brief downtime"
+fi
+echo ""
+
+# ============================================================
+# DEPLOYMENT STRATEGY SELECTION
+# ============================================================
+
 # Check if container is running
+CONTAINER_RUNNING=false
 if docker ps -q -f name="^${CONTAINER_NAME}$" > /dev/null; then
-    echo -e "${YELLOW}📦 Existing container found, performing zero-downtime deployment...${NC}"
+    CONTAINER_RUNNING=true
+fi
+
+# Strategy: Zero-downtime deployment (only if certificates exist)
+if [ "$CERT_EXISTS" = true ] && [ "$CONTAINER_RUNNING" = true ]; then
+    echo -e "${YELLOW}📦 Performing zero-downtime deployment...${NC}"
+    echo "   Strategy: Stage on port 8080 → Health check → Swap to 80/443"
+    echo ""
     
     # Start new container on temporary port
     docker run -d \
@@ -112,8 +151,26 @@ if docker ps -q -f name="^${CONTAINER_NAME}$" > /dev/null; then
         echo -e "${RED}Rollback complete, old container still running${NC}"
         exit 1
     fi
+
+# Strategy: Direct deployment (no existing container OR no certificates)
 else
-    echo -e "${YELLOW}📦 No existing container, starting fresh...${NC}"
+    if [ "$CERT_EXISTS" = true ]; then
+        echo -e "${YELLOW}📦 Fresh deployment with existing certificates...${NC}"
+        echo "   Strategy: Direct start on ports 80/443"
+    else
+        echo -e "${YELLOW}🔐 Initial SSL setup required...${NC}"
+        echo "   Strategy: Direct start on port 80 for Certbot standalone"
+        echo "   Note: Brief downtime expected during certificate acquisition"
+        
+        # Stop any existing container to free port 80 for Certbot
+        if [ "$CONTAINER_RUNNING" = true ]; then
+            echo ""
+            echo "🛑 Stopping existing container to free port 80 for SSL acquisition..."
+            docker stop "$CONTAINER_NAME" || true
+            docker rm "$CONTAINER_NAME" || true
+        fi
+    fi
+    echo ""
     
     # Start new container
     docker run -d \
@@ -128,6 +185,19 @@ else
         "$IMAGE_NAME"
     
     echo -e "${GREEN}✅ Container started successfully!${NC}"
+    
+    # Wait for container to be healthy (especially important for initial SSL acquisition)
+    if [ "$CERT_EXISTS" = false ]; then
+        echo "⏳ Waiting for SSL certificate acquisition (can take up to 60s)..."
+        sleep 10
+        
+        # Check container logs for any errors
+        if ! docker ps -q -f name="^${CONTAINER_NAME}$" > /dev/null; then
+            echo -e "${RED}❌ Container failed to start. Checking logs...${NC}"
+            docker logs "$CONTAINER_NAME" 2>&1 | tail -50
+            exit 1
+        fi
+    fi
 fi
 
 # Cleanup old images (keep last 3)
