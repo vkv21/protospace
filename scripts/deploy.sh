@@ -10,6 +10,40 @@ NC='\033[0m' # No Color
 echo -e "${GREEN}🚀 CommitSpace Deployment Script${NC}"
 echo "========================================"
 
+# ============================================================
+# ENSURE REQUIRED DIRECTORIES EXIST
+# ============================================================
+echo -e "${GREEN}📁 Setting up persistent directories...${NC}"
+
+# Create directories for SSL certificates, logs, and Certbot logs
+REQUIRED_DIRS=(
+    "/home/ec2-user/letsencrypt"
+    "/home/ec2-user/letsencrypt-logs"
+    "/home/ec2-user/nginx-logs"
+)
+
+for DIR in "${REQUIRED_DIRS[@]}"; do
+    if [ ! -d "$DIR" ]; then
+        echo "   Creating directory: $DIR"
+        mkdir -p "$DIR"
+        chmod 755 "$DIR"
+    else
+        echo "   ✓ Directory exists: $DIR"
+    fi
+done
+
+# Verify docker.env exists
+if [ ! -f "/home/ec2-user/docker.env" ]; then
+    echo -e "${RED}❌ ERROR: /home/ec2-user/docker.env not found${NC}"
+    echo "Please create docker.env with required environment variables:"
+    echo "  DOMAIN=commitspace.com"
+    echo "  EMAIL=your-email@example.com"
+    exit 1
+fi
+
+echo -e "${GREEN}✅ All directories ready${NC}"
+echo ""
+
 CONTAINER_NAME="commitspace-frontend"
 IMAGE_NAME="commitspace:latest"
 NEW_CONTAINER="${CONTAINER_NAME}-new"
@@ -22,8 +56,9 @@ if docker ps -q -f name="^${CONTAINER_NAME}$" > /dev/null; then
     docker run -d \
         --name "$NEW_CONTAINER" \
         -p 8080:80 \
-        -v /etc/letsencrypt:/etc/letsencrypt \
-        -v /home/ec2-user/logs:/var/log/nginx \
+        -v /home/ec2-user/letsencrypt:/etc/letsencrypt \
+        -v /home/ec2-user/letsencrypt-logs:/var/log/letsencrypt \
+        -v /home/ec2-user/nginx-logs:/var/log/nginx \
         --env-file /home/ec2-user/docker.env \
         "$IMAGE_NAME"
     
@@ -49,8 +84,9 @@ if docker ps -q -f name="^${CONTAINER_NAME}$" > /dev/null; then
             --restart unless-stopped \
             -p 80:80 \
             -p 443:443 \
-            -v /etc/letsencrypt:/etc/letsencrypt \
-            -v /home/ec2-user/logs:/var/log/nginx \
+            -v /home/ec2-user/letsencrypt:/etc/letsencrypt \
+            -v /home/ec2-user/letsencrypt-logs:/var/log/letsencrypt \
+            -v /home/ec2-user/nginx-logs:/var/log/nginx \
             --env-file /home/ec2-user/docker.env \
             "$IMAGE_NAME"
         
@@ -71,8 +107,9 @@ else
         --restart unless-stopped \
         -p 80:80 \
         -p 443:443 \
-        -v /etc/letsencrypt:/etc/letsencrypt \
-        -v /home/ec2-user/logs:/var/log/nginx \
+        -v /home/ec2-user/letsencrypt:/etc/letsencrypt \
+        -v /home/ec2-user/letsencrypt-logs:/var/log/letsencrypt \
+        -v /home/ec2-user/nginx-logs:/var/log/nginx \
         --env-file /home/ec2-user/docker.env \
         "$IMAGE_NAME"
     
