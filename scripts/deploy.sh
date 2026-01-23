@@ -55,13 +55,30 @@ echo -e "${GREEN}🔍 Checking SSL certificate status...${NC}"
 
 # Extract domain from docker.env (remove quotes and whitespace)
 DOMAIN=$(grep "^DOMAIN=" /home/ec2-user/docker.env | cut -d= -f2 | tr -d '"' | tr -d "'" | xargs)
-echo "   📍 Detected domain: $DOMAIN"
+echo "   📍 Detected domain: '$DOMAIN'"
 
 CERT_PATH="/home/ec2-user/letsencrypt/live/$DOMAIN/fullchain.pem"
 echo "   📂 Certificate path: $CERT_PATH"
 
+# Debug: Check if path exists
+echo "   🔍 DEBUG: Checking if certificate file exists..."
+if [ -e "$CERT_PATH" ]; then
+    echo "   🔍 DEBUG: Path exists (type: $(file "$CERT_PATH" 2>/dev/null || echo 'unknown'))"
+    ls -lh "$CERT_PATH" 2>&1 || echo "   ⚠️  Cannot list file"
+else
+    echo "   🔍 DEBUG: Path does NOT exist"
+fi
+
+# Debug: Check openssl availability
+if command -v openssl > /dev/null 2>&1; then
+    echo "   🔍 DEBUG: openssl is available"
+else
+    echo "   ⚠️  DEBUG: openssl NOT found - cannot validate certificates!"
+fi
+
 CERT_EXISTS=false
 if [ -f "$CERT_PATH" ]; then
+    echo "   🔍 DEBUG: File test passed, attempting validation..."
     # Validate certificate is not expired (checkend 0 = check if expired now)
     if openssl x509 -checkend 0 -noout -in "$CERT_PATH" 2>/dev/null; then
         CERT_EXISTS=true
@@ -76,14 +93,17 @@ if [ -f "$CERT_PATH" ]; then
         fi
     else
         echo -e "${YELLOW}⚠️  Certificate file exists but is expired or invalid${NC}"
+        echo "   🔍 DEBUG: openssl validation failed"
         echo "   Will perform fresh certificate acquisition"
         CERT_EXISTS=false  # Force initial setup path
     fi
 else
-    echo -e "${YELLOW}⚠️  No SSL certificates found${NC}"
+    echo -e "${YELLOW}⚠️  No SSL certificate found${NC}"
     echo "   📂 Checked path: $CERT_PATH"
     echo "   Initial certificate acquisition will require brief downtime"
 fi
+
+echo "   🔍 DEBUG: Final CERT_EXISTS='$CERT_EXISTS'"
 echo ""
 
 # ============================================================
@@ -94,7 +114,12 @@ echo ""
 CONTAINER_RUNNING=false
 if docker ps -q -f name="^${CONTAINER_NAME}$" > /dev/null; then
     CONTAINER_RUNNING=true
+    echo "   🔍 DEBUG: Existing container is running"
+else
+    echo "   🔍 DEBUG: No existing container running"
 fi
+
+echo "   🔍 DEBUG: CERT_EXISTS='$CERT_EXISTS', CONTAINER_RUNNING='$CONTAINER_RUNNING'"
 
 # Strategy: Zero-downtime deployment (only if certificates exist)
 if [ "$CERT_EXISTS" = true ] && [ "$CONTAINER_RUNNING" = true ]; then
