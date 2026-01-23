@@ -62,15 +62,22 @@ echo "   📂 Certificate path: $CERT_PATH"
 
 CERT_EXISTS=false
 if [ -f "$CERT_PATH" ]; then
-    CERT_EXISTS=true
-    echo -e "${GREEN}✅ SSL certificates found for $DOMAIN${NC}"
-    
-    # Check certificate validity
-    if openssl x509 -checkend 2592000 -noout -in "$CERT_PATH" 2>/dev/null; then
-        CERT_EXPIRY=$(openssl x509 -enddate -noout -in "$CERT_PATH" | cut -d= -f2)
-        echo "   📅 Certificate valid until: $CERT_EXPIRY"
+    # Validate certificate is not expired (checkend 0 = check if expired now)
+    if openssl x509 -checkend 0 -noout -in "$CERT_PATH" 2>/dev/null; then
+        CERT_EXISTS=true
+        echo -e "${GREEN}✅ Valid SSL certificate found for $DOMAIN${NC}"
+        
+        # Check if expiring soon (within 30 days)
+        if openssl x509 -checkend 2592000 -noout -in "$CERT_PATH" 2>/dev/null; then
+            CERT_EXPIRY=$(openssl x509 -enddate -noout -in "$CERT_PATH" | cut -d= -f2)
+            echo "   📅 Certificate valid until: $CERT_EXPIRY"
+        else
+            echo -e "${YELLOW}   ⚠️  Certificate expires in less than 30 days (will auto-renew)${NC}"
+        fi
     else
-        echo -e "${YELLOW}   ⚠️  Certificate expires in less than 30 days${NC}"
+        echo -e "${YELLOW}⚠️  Certificate file exists but is expired or invalid${NC}"
+        echo "   Will perform fresh certificate acquisition"
+        CERT_EXISTS=false  # Force initial setup path
     fi
 else
     echo -e "${YELLOW}⚠️  No SSL certificates found${NC}"
@@ -192,14 +199,68 @@ else
     
     # Wait for container to be healthy (especially important for initial SSL acquisition)
     if [ "$CERT_EXISTS" = false ]; then
-        echo "⏳ Waiting for SSL certificate acquisition (can take up to 60s)..."
-        sleep 70 # Initial wait for Certbot to complete 
+        echo "⏳ Waiting for SSL certificate acquisition (can take up to 2 minutes)..."
+        echo "   This involves DNS validation and certificate issuance by Let's Encrypt"
         
-        # Check container logs for any errors
-        if ! docker ps -q -f name="^${CONTAINER_NAME}$" > /dev/null; then
-            echo -e "${RED}❌ Container failed to start. Checking logs...${NC}"
-            docker logs "$CONTAINER_NAME" 2>&1 | tail -50
+        # Poll for container health with extended timeout
+        MAX_RETRIES=24  # 2 minutes (24 * 5s)
+        COUNT=0
+        HEALTHY=false
+        LAST_LOG=""
+        
+        while [ $COUNT -lt $MAX_RETRIES ]; do
+            # Check if container is still running
+            if ! docker ps -q -f name="^${CONTAINER_NAME}$" > /dev/null; then
+                echo -e "${RED}❌ Container stopped unexpectedly during SSL acquisition${NC}"
+                echo ""
+                echo "📋 Last 50 lines of container logs:"
+                docker logs "$CONTAINER_NAME" 2>&1 | tail -50
+                exit 1
+            fi
+            
+            # Try to connect to Nginx (means certbot finished and Nginx started)
+            if curl -f -s http://localhost/ > /dev/null 2>&1; then
+                echo -e "${GREEN}✅ SSL acquisition complete! Nginx is responding${NC}"
+                HEALTHY=true
+                break
+            fi
+            
+            # Show progress by displaying the last log line
+            CURRENT_LOG=$(docker logs "$CONTAINER_NAME" 2>&1 | tail -1)
+            if [ "$CURRENT_LOG" != "$LAST_LOG" ]; then
+                echo "   [$(date +%H:%M:%S)] $CURRENT_LOG"
+                LAST_LOG="$CURRENT_LOG"
+            else
+                echo "   Waiting... ($((COUNT+1))/$MAX_RETRIES) - checking every 5 seconds"
+            fi
+            
+            sleep 5
+            COUNT=$((COUNT+1))
+        done
+        
+        if [ "$HEALTHY" = false ]; then
+            echo -e "${RED}❌ SSL acquisition timed out after 2 minutes${NC}"
+            echo ""
+            echo "📋 Full container logs:"
+            docker logs "$CONTAINER_NAME" 2>&1
+            echo ""
+            echo "💡 Common causes:"
+            echo "   - DNS not properly configured for $DOMAIN"
+            echo "   - Port 80 blocked by firewall"
+            echo "   - Let's Encrypt rate limit reached"
             exit 1
+        fi
+    else
+        # Certificates already exist, just wait for Nginx to start
+        echo "⏳ Waiting for Nginx startup (5 seconds)..."
+        sleep 5
+        
+        # Quick health check
+        if curl -f http://localhost/ > /dev/null 2>&1; then
+            echo -e "${GREEN}✅ Nginx is responding${NC}"
+        else
+            echo -e "${YELLOW}⚠️  Nginx not responding yet, checking logs...${NC}"
+            docker logs "$CONTAINER_NAME" 2>&1 | tail -20
         fi
     fi
 fi
