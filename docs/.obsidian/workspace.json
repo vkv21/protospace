@@ -1,0 +1,216 @@
+{
+  "main": {
+    "id": "64351df0f6260df5",
+    "type": "split",
+    "children": [
+      {
+        "id": "d89b8a4ca54e74ef",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "abcab4dcb18e1057",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "hooks/use-pose-detection.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "use-pose-detection"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "721e1143ab36fd9f",
+    "type": "split",
+    "children": [
+      {
+        "id": "59e406215fc91e17",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8436293457ee5eed",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "aadacaff8c56d568",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "1d1dd504480df306",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "928b8ec83c89fc5a",
+    "type": "split",
+    "children": [
+      {
+        "id": "1648f5219effafd8",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4f2b50db42ba0691",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "hooks/use-pose-detection.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for use-pose-detection"
+            }
+          },
+          {
+            "id": "947463bca0696d97",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "hooks/use-pose-detection.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from use-pose-detection"
+            }
+          },
+          {
+            "id": "dc3d4f953897df70",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "243c9d44e889d5d0",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "c80d5e44e4df351f",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "hooks/use-pose-detection.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of use-pose-detection"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "abcab4dcb18e1057",
+  "lastOpenFiles": [
+    "components/confirm-dialog.md",
+    "components/stat-box.md",
+    "components/goal-progress-box.md",
+    "components/session-timer.md",
+    "components/settings-modal.md",
+    "components/stats-modal.md",
+    "components/weekly-bar-chart.md",
+    "components/timeline-chart.md",
+    "utils/landmarkDrawer.md",
+    "utils/statsStorage.md",
+    "utils/activityAnalyzer.md",
+    "utils/presenceAnalyzer.md",
+    "STATE-MANAGEMENT.md",
+    "index.md",
+    "utils/poseDetector.md",
+    "hooks/use-pose-detection.md",
+    "utils",
+    "hooks/use-webcam.md",
+    "components/video-capture.md",
+    "components/app.md",
+    "architecture/app-architecture.md",
+    "algorithms/statistics-calculation.md",
+    "guides/testing.md",
+    "guides/deployment.md",
+    "guides/code-review-template.md",
+    "guides/agent-instructions.md",
+    "GETTING-STARTED.md"
+  ]
+}

@@ -49,11 +49,11 @@ class PoseDetectorSingleton {
     }
   }
 
-  // Actual initialization logic
+  // Actual initialization logic -- landmarker is set and can be used with detect()
   private async doInitialize(): Promise<void> {
     try {
       const vision = await FilesetResolver.forVisionTasks(
-        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
+        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm',
       );
 
       this.poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
@@ -70,14 +70,14 @@ class PoseDetectorSingleton {
       throw new Error(
         `PoseLandmarker initialization failed: ${
           error instanceof Error ? error.message : 'Unknown error'
-        }`
+        }`,
       );
     }
   }
 
   public detect(
     videoElement: HTMLVideoElement,
-    timestamp: number
+    timestamp: number,
   ): PoseDetectionResult | null {
     if (!this.poseLandmarker) {
       console.warn('PoseLandmarker not initialized');
@@ -96,7 +96,7 @@ class PoseDetectorSingleton {
     try {
       const results = this.poseLandmarker.detectForVideo(
         videoElement,
-        timestamp
+        timestamp,
       );
 
       if (!results.landmarks || results.landmarks.length === 0) {

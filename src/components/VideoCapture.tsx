@@ -35,12 +35,12 @@ export const VideoCapture = () => {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
 
-  // Persist dev mode to localStorage
+  // Persist dev mode to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('commitspace_dev_mode', devMode.toString());
   }, [devMode]);
 
-  // Persist self view preference to localStorage
+  // Persist self view preference to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('commitspace_self_view', selfViewEnabled.toString());
   }, [selfViewEnabled]);
