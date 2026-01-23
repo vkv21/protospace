@@ -53,9 +53,12 @@ NEW_CONTAINER="${CONTAINER_NAME}-new"
 # ============================================================
 echo -e "${GREEN}🔍 Checking SSL certificate status...${NC}"
 
-# Extract domain from docker.env
-DOMAIN=$(grep "^DOMAIN=" /home/ec2-user/docker.env | cut -d= -f2)
+# Extract domain from docker.env (remove quotes and whitespace)
+DOMAIN=$(grep "^DOMAIN=" /home/ec2-user/docker.env | cut -d= -f2 | tr -d '"' | tr -d "'" | xargs)
+echo "   📍 Detected domain: $DOMAIN"
+
 CERT_PATH="/home/ec2-user/letsencrypt/live/$DOMAIN/fullchain.pem"
+echo "   📂 Certificate path: $CERT_PATH"
 
 CERT_EXISTS=false
 if [ -f "$CERT_PATH" ]; then
@@ -70,7 +73,8 @@ if [ -f "$CERT_PATH" ]; then
         echo -e "${YELLOW}   ⚠️  Certificate expires in less than 30 days${NC}"
     fi
 else
-    echo -e "${YELLOW}⚠️  No SSL certificates found for $DOMAIN${NC}"
+    echo -e "${YELLOW}⚠️  No SSL certificates found${NC}"
+    echo "   📂 Checked path: $CERT_PATH"
     echo "   Initial certificate acquisition will require brief downtime"
 fi
 echo ""
