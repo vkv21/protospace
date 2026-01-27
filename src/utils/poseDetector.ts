@@ -53,7 +53,7 @@ class PoseDetectorSingleton {
   private async doInitialize(): Promise<void> {
     try {
       const vision = await FilesetResolver.forVisionTasks(
-        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm',
+        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm',
       );
 
       this.poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
